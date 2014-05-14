@@ -41,6 +41,15 @@ describe("Model", function () {
     });
   });
 
+  describe("#_dispatch", function () {
+    it("catches an re throws any exceptions to it's callback", function (done) {
+      model._dispatch('unknown', ['key', function (err) {
+        assert.ok(err);
+        done();
+      }]);
+    });
+  });
+
   describe("#put", function () {
     it("throws if no callback is passed and an error occurs", function (done) {
       model.putSync = function (v, o, d) { d(true); };

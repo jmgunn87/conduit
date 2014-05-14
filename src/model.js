@@ -45,9 +45,13 @@ Model.prototype._dispatch = function (methodName, args) {
   var camelKey = methodName + 
     args[0].charAt(0).toUpperCase() + args[0].substr(1);    
   
-  return this[camelKey] ?
-    this[camelKey].apply(this, args.slice(1)) :
-    this["_" + methodName].apply(this, args);
+  try {
+    return this[camelKey] ?
+      this[camelKey].apply(this, args.slice(1)) :
+      this["_" + methodName].apply(this, args);
+  } catch (err) {
+    return args[offset + 1](err);
+  }
 };
 
 Model.prototype._syncBatch = function (methodName, batch) {
