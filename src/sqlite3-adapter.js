@@ -90,10 +90,16 @@ SQLite3Adapter.prototype.disconnect = function (callback) {
 };
 
 SQLite3Adapter.prototype.createTable = function (callback) {
-  this.exec(this.templates.createTable({
-    entity: this.entity,
-    schema: this.schema,
-  }), [], callback);
+  try {
+    var sql = this.templates.createTable({
+      entity: this.entity,
+      schema: this.schema,
+    });
+  } catch (e) {
+    return callback(e); 
+  }
+
+  this.exec(sql, [], callback);
 };
 
 SQLite3Adapter.prototype.dropTable = function (callback) {
@@ -122,11 +128,18 @@ SQLite3Adapter.prototype._put = function (id, model, options, callback) {
 
   }, function (err, values) {
     if (err) return callback(err);
-    self.exec(template({
-      entity: entity,
-      fields: fields,
-      values: values
-    }), [], function (err) {
+
+    try {
+      var sql = template({
+        entity: entity,
+        fields: fields,
+        values: values
+      });
+    } catch (e) {
+      return callback(e); 
+    }
+
+    self.exec(sql, [], function (err) {
       callback(err, this.lastID);
     });
   });
@@ -148,13 +161,19 @@ SQLite3Adapter.prototype._get = function (id, options, callback) {
   }
 
   client.serialize(function() {
-    client.all(template({
-      entity: entity,
-      fields: options.fields,
-      query: options.query,
-      offset: options.offset,
-      limit: options.limit
-    }), [], function (err, result) {
+    try {
+      var sql = template({
+        entity: entity,
+        fields: options.fields,
+        query: options.query,
+        offset: options.offset,
+        limit: options.limit
+      });
+    } catch (e) {
+      return callback(e); 
+    }
+
+    client.all(sql, [], function (err, result) {
       if (err) return callback(err);
       async.map(result, function (item, done) { 
         async.parallel(_.reduce(item, function (r, v, fieldName) {
@@ -167,6 +186,7 @@ SQLite3Adapter.prototype._get = function (id, options, callback) {
         }, {}), done);
       }, callback);
     });
+
   });
 };
 
@@ -174,10 +194,16 @@ SQLite3Adapter.prototype._del = function (id, options, callback) {
   var template = options && options.template ? 
     _.template(options.template) : this.templates.del;
 
-  this.exec(template({
-    entity: this.entity,
-    id: id
-  }), [], callback);
+  try {
+    var sql = template({ 
+      entity: this.entity, 
+      id: id 
+    });
+  } catch (e) { 
+    return callback(e); 
+  }
+
+  this.exec(sql, [], callback);
 };
 
 SQLite3Adapter.prototype.exec = function (sql, options, callback) {

@@ -110,7 +110,11 @@ async.parallel([
   });
 
   mapper.put('gene', gene, function (e, id) {
-    console.log(e, id);
+    if (e) {
+      console.log(e.stack);
+      return;
+    }
+
     mapper.get('gene', {
       template: [
         'SELECT <%= fields ? fields.join(",") : "*" %> FROM <%= entity %>',
@@ -124,7 +128,7 @@ async.parallel([
       offset: 10,
       limit: 10
     }, function (e, r) {
-      console.log(e, r.length);
+      console.log(e ? e.stack : e, r?r.length:r);
     });
   });
   /*
