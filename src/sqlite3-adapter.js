@@ -57,10 +57,8 @@ SQLite3Adapter.templates = {
         '<% if (query[key]) { %><%= key %>=\'<%= query[key] %>\'<% } %>',
       '<% } %>',
     '<% } %>',
-    '<% if (range) { %> LIMIT ',
-      '<%= range.offset || "0" %>',
-      '<%= range.limit ? "," + range.limit : ""%> ',
-    '<% } %>'
+    '<% if (limit) { %> LIMIT <%= limit  %> <% } %>',
+    '<% if (offset) { %> OFFSET <%= offset %> <% } %> '
   ].join('')),
   'put': _.template([
     'INSERT INTO <%= entity %> (<%= fields.join(",") %>) VALUES (<%= values.join(",") %>)',
@@ -76,7 +74,7 @@ function SQLite3Adapter(config) {
   this.templates = config.templates || SQLite3Adapter.templates;
   this.container = config.container;
   this.schema = config.schema = this.container.get(
-    this.entity + '-schema'
+    this.entity + '/schema'
   );
   Model.call(this, config);
 }
@@ -154,7 +152,8 @@ SQLite3Adapter.prototype._get = function (id, options, callback) {
       entity: entity,
       fields: options.fields,
       query: options.query,
-      range: options.range
+      offset: options.offset,
+      limit: options.limit
     }), [], function (err, result) {
       if (err) return callback(err);
       async.map(result, function (item, done) { 

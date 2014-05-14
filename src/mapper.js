@@ -19,7 +19,7 @@ Mapper.prototype._put = function(entity, instance, options, done) {
     r.id = r.id || uuid.v4();
     i.preUpdate(function (err) {
       if (err) return d(err);
-      s.container.get(e.entity + '-adapter')
+      s.container.get(e.entity + '/adapter')
         .put(r.id, r, function (err, id) {
           if (err) return d(err);
           i.store.id = id;
@@ -42,19 +42,19 @@ Mapper.prototype._get = function(entity, id, done) {
     id = undefined;
   }
 
-  s.container.get(entity + '-adapter')
+  s.container.get(entity + '/adapter')
     .get(id, options, function (e, v) {
       if (e) return done(e);
       if (_.isArray(v)) {
         var numResults = v.length;
         for (var i=0; i < numResults; ++i) {
-          v[i] = s.container.get(entity + '-model', v[i]);
+          v[i] = s.container.get(entity + '/model', v[i]);
         }
         if (id) {//this is not a collection
           v = v[0];
         }
       } else {
-        v = s.container.get(entity + '-model', v);
+        v = s.container.get(entity + '/model', v);
       }
       done(null, v);
     });
@@ -63,12 +63,12 @@ Mapper.prototype._get = function(entity, id, done) {
 Mapper.prototype._del = function(entity, id, done) {
   var s = this;
   s.container
-    .get(entity + '-adapter')
+    .get(entity + '/adapter')
     .get(id, function (e, v) {
-      s.map(entity, s.container.get(entity + '-model', v), function (e, i, r, d) {
+      s.map(entity, s.container.get(entity + '/model', v), function (e, i, r, d) {
         i.preUpdate(function (err) {
           if (err) return d(err);
-          s.container.get(e.entity + '-adapter')
+          s.container.get(e.entity + '/adapter')
             .del(i.store.id || r.id, function (err) {
               if (err) return d(err);
               i.postUpdate(d);
@@ -79,7 +79,7 @@ Mapper.prototype._del = function(entity, id, done) {
 };
 
 Mapper.prototype.map = function(entity, instance, method, done) {
-  this.mapField(this.container.get(entity + '-schema'), instance, method, done);
+  this.mapField(this.container.get(entity + '/schema'), instance, method, done);
 };
 
 Mapper.prototype.mapField = function (field, value, method, done) {
@@ -97,10 +97,10 @@ Mapper.prototype.mapField = function (field, value, method, done) {
 
 Mapper.prototype.mapForeignKey = function (field, value, method, done) {
   var self = this;
-  this.container.get(field.entity + '-adapter')
+  this.container.get(field.entity + '/adapter')
     .get(value, function (err, reference) {
       if (err) return done(err, reference);
-      var model = self.container.get(field.entity + '-model', reference);
+      var model = self.container.get(field.entity + '/model', reference);
       self.mapField(field, model, method, done);
   });
 };
@@ -115,7 +115,7 @@ Mapper.prototype.mapCollection = function (field, value, method, done) {
 Mapper.prototype.mapModel = function (field, model, method, done) {
   var self = this;
   var mapped = {};
-  var schema = this.container.get(field.entity + '-schema') || {};
+  var schema = this.container.get(field.entity + '/schema') || {};
   async.parallel(_.reduce(schema.fields || {}, function (result, field, key) {
     var reduction = field.mapped ? mapped : result;
     reduction[key] = function (callback) {

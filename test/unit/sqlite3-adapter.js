@@ -45,7 +45,7 @@ describe('SQLite3Adapter', function () {
     entity: 'TestEntity',
     path: '/tmp/sqlite3test.db',
     container: new Container({
-      'TestEntity-schema': schemas.TestEntity
+      'TestEntity/schema': schemas.TestEntity
     })
   });
 

@@ -8,7 +8,7 @@ var LevelDBAdapter = require('./src/leveldb-adapter');
 var container = new Container();
 var mapper = new Mapper({ container: container });
 
-container.put('gene-schema', {
+container.put('gene/schema', {
   entity: 'gene',
   id: 'id',
   fields: {
@@ -35,7 +35,7 @@ container.put('gene-schema', {
   }
 });
 
-container.put('child-schema', {
+container.put('child/schema', {
   entity: 'child',
   id: 'id',
   fields: {
@@ -54,19 +54,19 @@ container.put('child-schema', {
   }
 });
 
-container.put('gene-model', function (values) {
+container.put('gene/model', function (values) {
   values.schema = container.get('gene-schema');
   values.mapper = mapper; 
   return new Model(values); 
 });
 
-container.put('child-model', function (values) {
+container.put('child/model', function (values) {
   values.schema = container.get('child-schema');
   values.mapper = mapper; 
   return new Model(values); 
 });
 
-container.put('gene-adapter', function () {
+container.put('gene/adapter', function () {
   return new SQLite3Adapter({ 
     entity: 'gene',
     container: container, 
@@ -74,7 +74,7 @@ container.put('gene-adapter', function () {
   });
 }, true);
 
-container.put('child-adapter', function () {
+container.put('child/adapter', function () {
   return new LevelDBAdapter({ 
     entity: 'child',
     container: container, 
@@ -84,23 +84,23 @@ container.put('child-adapter', function () {
 
 async.parallel([
   function (done) { 
-    container.get('gene-adapter').connect(function () {
-      container.get('gene-adapter').createTable(done);
+    container.get('gene/adapter').connect(function () {
+      container.get('gene/adapter').createTable(done);
     });
   },
   function (done) { 
-    container.get('child-adapter').connect(function () {
-      container.get('child-adapter').createTable(done);
+    container.get('child/adapter').connect(function () {
+      container.get('child/adapter').createTable(done);
     });
   },
 ], function (err) {
 
-  var gene = container.get('gene-model', {});
+  var gene = container.get('gene/model', {});
   gene.put({
     tag: 'root',
-    one2one: container.get('gene-model', { tag: '121' }),
-    many2one: container.get('gene-model', { tag: '*21' }),
-    one2oneMapped: container.get('child-model', { tag: '121m' }),
+    one2one: container.get('gene/model', { tag: '121' }),
+    many2one: container.get('gene/model', { tag: '*21' }),
+    one2oneMapped: container.get('child/model', { tag: '121m' }),
     one2manyMapped: [
       container.get('child-model', { tag: '12*m-1' }),
       container.get('child-model', { tag: '12*m-2' }),
@@ -111,19 +111,22 @@ async.parallel([
 
   mapper.put('gene', gene, function (e, id) {
     mapper.get('gene', {
+      template: [
+        'SELECT <%= fields ? fields.join(",") : "*" %> FROM <%= entity %>',
+        '<% if (limit) { %> LIMIT <%= limit  %> <% } %>',
+        '<% if (offset) { %> OFFSET <%= offset %> <% } %> '
+      ].join(''),
       query: {
         tag: 'root'
       },
       fields: ['id'],
-      range: {
-        offset: 10,
-        limit: 2
-      }
+      offset: 10,
+      limit: 10
     }, function (e, r) {
-      console.log(r.length, r);
+      console.log(r.length);
     });
   });
-/*
+  /*
   mapper.put('gene', gene, function (e, id) {
     mapper.get('gene', id, function (e, ve) {
       console.log(ve);
@@ -132,5 +135,5 @@ async.parallel([
       });
     });
   });
-*/
+  */
 });

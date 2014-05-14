@@ -54,9 +54,9 @@ describe('Mapper', function () {
 
   before(function () {
     container = new Container();
-    container.put('gene-schema', schemas.gene);
-    container.put('child-schema', schemas.child);
-    container.put('gene-adapter', function (p) { 
+    container.put('gene/schema', schemas.gene);
+    container.put('child/schema', schemas.child);
+    container.put('gene/adapter', function (p) { 
       var adapter = new Model(p);
       adapter._put = function (id, model, options, callback) {
         this.store[id] = model;
@@ -64,7 +64,7 @@ describe('Mapper', function () {
       };
       return adapter;
     }, true);
-    container.put('child-adapter', function (p) { 
+    container.put('child/adapter', function (p) { 
       var adapter = new Model(p);
       adapter._put = function (id, model, options, callback) {
         this.store[id] = model;
@@ -72,8 +72,8 @@ describe('Mapper', function () {
       };
       return adapter;
     }, true);
-    container.put('gene-model', function (p) { p.schema = schemas.gene; return new Model(p); });
-    container.put('child-model', function (p) { p.schema = schemas.child; return new Model(p); });
+    container.put('gene/model', function (p) { p.schema = schemas.gene; return new Model(p); });
+    container.put('child/model', function (p) { p.schema = schemas.child; return new Model(p); });
     mapper = new Mapper({ container: container });
     model = new Model({ schema: schemas.gene });
     model.put({
@@ -115,7 +115,7 @@ describe('Mapper', function () {
       mapper.put('gene', model, function (err, id) {
         if (err) throw err;
         assert.ok(id);
-        assert.ok(mapper.container.get('gene-adapter').store[id]);
+        assert.ok(mapper.container.get('gene/adapter').store[id]);
         childID = model.get('one2oneMapped').get('id');
         geneID = id;
         done();
@@ -126,18 +126,18 @@ describe('Mapper', function () {
         if (err) throw err;
         mapper.put('gene', model, function (err, id) {
           if (err) throw err;
-          assert.ok(mapper.container.get('gene-adapter').store[id]);
-          assert.ok(!mapper.container.get('gene-adapter').store[id].other);
-          assert.ok(!mapper.container.get('gene-adapter').store[id].one2oneInversed);
-          assert.ok(!mapper.container.get('gene-adapter').store[id].one2manyInversed);
-          assert.ok(!mapper.container.get('gene-adapter').store[id].one2oneMapped);
-          assert.ok(!mapper.container.get('gene-adapter').store[id].one2manyMapped);
-          assert.ok(mapper.container.get('gene-adapter').store[id].title);
-          assert.ok(mapper.container.get('gene-adapter').store[id].symbol);
-          assert.ok(mapper.container.get('gene-adapter').store[id].one2one);
-          assert.ok(mapper.container.get('gene-adapter').store[id].one2many);
-          assert.equal(Object.keys(mapper.container.get('gene-adapter').store).length, 5);
-          assert.equal(Object.keys(mapper.container.get('child-adapter').store).length, 4);
+          assert.ok(mapper.container.get('gene/adapter').store[id]);
+          assert.ok(!mapper.container.get('gene/adapter').store[id].other);
+          assert.ok(!mapper.container.get('gene/adapter').store[id].one2oneInversed);
+          assert.ok(!mapper.container.get('gene/adapter').store[id].one2manyInversed);
+          assert.ok(!mapper.container.get('gene/adapter').store[id].one2oneMapped);
+          assert.ok(!mapper.container.get('gene/adapter').store[id].one2manyMapped);
+          assert.ok(mapper.container.get('gene/adapter').store[id].title);
+          assert.ok(mapper.container.get('gene/adapter').store[id].symbol);
+          assert.ok(mapper.container.get('gene/adapter').store[id].one2one);
+          assert.ok(mapper.container.get('gene/adapter').store[id].one2many);
+          assert.equal(Object.keys(mapper.container.get('gene/adapter').store).length, 5);
+          assert.equal(Object.keys(mapper.container.get('child/adapter').store).length, 4);
           done();
         });
       });
@@ -145,13 +145,13 @@ describe('Mapper', function () {
     it('persists any entity fields as foreign key references', function (done) {
       mapper.put('gene', model, function (err, id) {
         if (err) throw err;
-        var cid = mapper.container.get('gene-adapter').store[id].one2one;
-        var cidArray = mapper.container.get('gene-adapter').store[id].one2many;
+        var cid = mapper.container.get('gene/adapter').store[id].one2one;
+        var cidArray = mapper.container.get('gene/adapter').store[id].one2many;
         assert.ok(cid);
         assert.equal(typeof cid, 'string');
         assert.equal(typeof cidArray[0], 'string');
         assert.equal(typeof cidArray[1], 'string');
-        assert.ok(mapper.container.get('gene-adapter').store[cid]); 
+        assert.ok(mapper.container.get('gene/adapter').store[cid]); 
         done();
       });
     });
@@ -160,7 +160,7 @@ describe('Mapper', function () {
         if (err) throw err;
         var one2oneInversedSeen = false;
         var one2manyInversedSeen = false;
-        var store = mapper.container.get('child-adapter').store;
+        var store = mapper.container.get('child/adapter').store;
         for (var key in store) {
           if (store[key].one2oneInversed) one2oneInversedSeen = true;
           if (store[key].one2manyInversed) one2manyInversedSeen = true;
@@ -175,7 +175,7 @@ describe('Mapper', function () {
       model.clean = true;
       mapper.put('gene', model, function (err, id) {
         if (err) throw err;
-        assert.ok(!mapper.container.get('gene-adapter').store[id]);
+        assert.ok(!mapper.container.get('gene/adapter').store[id]);
         model.clean = false;
         model.store.id = geneID;
         done();
@@ -243,7 +243,7 @@ describe('Mapper', function () {
     it('removes an entity from its adapter and all relations', function (done) {
       mapper.del('gene', geneID, function (err) {
         if (err) throw err;
-        assert.ok(!mapper.container.get('gene-adapter').store[geneID]);
+        assert.ok(!mapper.container.get('gene/adapter').store[geneID]);
         done();
       });
     });
