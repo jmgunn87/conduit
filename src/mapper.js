@@ -50,9 +50,7 @@ Mapper.prototype._get = function(entity, id, done) {
         for (var i=0; i < numResults; ++i) {
           v[i] = s.container.get(entity + '/model', v[i]);
         }
-        if (id) {//this is not a collection
-          v = v[0];
-        }
+        v = id ? v[0] : v;//not a collection
       } else {
         v = s.container.get(entity + '/model', v);
       }
@@ -79,7 +77,9 @@ Mapper.prototype._del = function(entity, id, done) {
 };
 
 Mapper.prototype.map = function(entity, instance, method, done) {
-  this.mapField(this.container.get(entity + '/schema'), instance, method, done);
+  var schema = this.container.get(entity + '/schema');
+  if (!schema) return done(new Error('Could not locate ' + entity + '/schema'));
+  this.mapField(schema, instance, method, done);
 };
 
 Mapper.prototype.mapField = function (field, value, method, done) {

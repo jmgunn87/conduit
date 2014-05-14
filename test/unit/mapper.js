@@ -72,8 +72,17 @@ describe('Mapper', function () {
       };
       return adapter;
     }, true);
+    container.put('noschema/adapter', function (p) { 
+      var adapter = new Model(p);
+      adapter._put = function (id, model, options, callback) {
+        this.store[id] = model;
+        callback(null, id);
+      };
+      return adapter;
+    }, true);
     container.put('gene/model', function (p) { p.schema = schemas.gene; return new Model(p); });
     container.put('child/model', function (p) { p.schema = schemas.child; return new Model(p); });
+    container.put('noschema/model', function (p) { p.schema = schemas.gene; return new Model(p); });
     mapper = new Mapper({ container: container });
     model = new Model({ schema: schemas.gene });
     model.put({
@@ -110,6 +119,14 @@ describe('Mapper', function () {
     });
   });
 
+  describe('#map', function () {
+    it("returns an error if no schema is detected", function (done) {
+      mapper.map('noschema', model, function () {}, function (err) {
+        assert.ok(err);
+        done();
+      });
+    });
+  });
   describe('#put', function () {
     it('persists a model to its assigned adapter', function (done) {
       mapper.put('gene', model, function (err, id) {
