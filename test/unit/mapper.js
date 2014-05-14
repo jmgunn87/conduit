@@ -119,14 +119,6 @@ describe('Mapper', function () {
     });
   });
 
-  describe('#map', function () {
-    it("returns an error if no schema is detected", function (done) {
-      mapper.map('noschema', model, function () {}, function (err) {
-        assert.ok(err);
-        done();
-      });
-    });
-  });
   describe('#put', function () {
     it('persists a model to its assigned adapter', function (done) {
       mapper.put('gene', model, function (err, id) {

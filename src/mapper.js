@@ -78,7 +78,6 @@ Mapper.prototype._del = function(entity, id, done) {
 
 Mapper.prototype.map = function(entity, instance, method, done) {
   var schema = this.container.get(entity + '/schema');
-  if (!schema) return done(new Error('Could not locate ' + entity + '/schema'));
   this.mapField(schema, instance, method, done);
 };
 

@@ -110,6 +110,7 @@ async.parallel([
   });
 
   mapper.put('gene', gene, function (e, id) {
+    console.log(e, id);
     mapper.get('gene', {
       template: [
         'SELECT <%= fields ? fields.join(",") : "*" %> FROM <%= entity %>',
@@ -123,7 +124,7 @@ async.parallel([
       offset: 10,
       limit: 10
     }, function (e, r) {
-      console.log(r.length);
+      console.log(e, r.length);
     });
   });
   /*
