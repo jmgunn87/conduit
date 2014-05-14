@@ -1,0 +1,32 @@
+{
+  "name": "conduit",
+  "version": "0.0.0",
+  "description": "polyglot database",
+  "main": "index.js",
+  "scripts": {
+    "lint": "jshint src/*.js index.js",
+    "test": "npm run lint && istanbul cover _mocha ./test/**/*.js -- -R spec -t 10000",
+    "build": "browserify index.js | uglifyjs -mc > conduit.js"
+  },
+  "author": "James Marshall-Gunn <jgmunn87@gmail.com>",
+  "devDependencies": {
+    "browserify": "3.41.0",
+    "istanbul": "0.2.7",
+    "jshint": "2.5.0",
+    "mkdirp": "0.4.0",
+    "mocha": "1.18.2",
+    "request": "2.34.0",
+    "rimraf": "2.2.6",
+    "uglify-js": "2.4.13"
+  },
+  "dependencies": {
+    "async": "0.7.0",
+    "leveldown": "0.10.2",
+    "levelup": "0.18.2",
+    "lodash": "2.4.1",
+    "node-uuid": "1.4.1",
+    "request": "2.34.0",
+    "sqlite3": "2.2.3",
+    "yargs": "1.2.1"
+  }
+}
