@@ -1,5 +1,7 @@
 Conduit
 =======
+properties on crack.
+
 
 ###Setup
 To setup the system you must use a **Container**. A **Container** is a synchronous subclass of **Model**. The container must have an adapter.
