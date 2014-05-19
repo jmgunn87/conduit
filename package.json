@@ -1,12 +1,13 @@
 {
   "name": "conduit",
   "version": "0.0.0",
-  "description": "polyglot database",
+  "description": "the polyglot database",
   "main": "index.js",
   "scripts": {
     "lint": "jshint src/*.js index.js",
     "test": "npm run lint && istanbul cover _mocha ./test/**/*.js -- -R spec -t 10000",
-    "build": "browserify index.js | uglifyjs -mc > conduit.js"
+    "build-dev": "browserify browser.js > conduit.js",
+    "build": "browserify browser.js | uglifyjs -mc > conduit.js"
   },
   "author": "James Marshall-Gunn <jgmunn87@gmail.com>",
   "devDependencies": {
