@@ -10,12 +10,17 @@ LevelDBAdapter.validators = {};
 
 function LevelDBAdapter(config) {
   Model.call(this, this.config = config);
+  this.container = config.container;
+  this.validator = this.container.get('validator', LevelDBAdapter.validators);
+  this.encoder = this.container.get('encoder', LevelDBAdapter.encoders);
+  this.decoder = this.container.get('decoder', LevelDBAdapter.decoders);
 }
 
 LevelDBAdapter.prototype = Object.create(Model.prototype);
 
 LevelDBAdapter.prototype.connect = function (callback) {
-  callback(null, this.client = LevelDBAdapter.connectionPool[this.config.path] = 
+  callback(null, this.client = 
+    LevelDBAdapter.connectionPool[this.config.path] = 
     LevelDBAdapter.connectionPool[this.config.path] ||
     leveldb(this.config.path, { 
       valueEncoding: 'json' 

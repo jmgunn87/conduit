@@ -4,9 +4,23 @@ var Mapper = require('./src/mapper');
 var Container = require('./src/container');
 var SQLite3Adapter = require('./src/sqlite3-adapter');
 var LevelDBAdapter = require('./src/leveldb-adapter');
+var Transcoder = require('./src/transcoder');
+var Validator = require('./src/validator');
 
 var container = new Container();
 var mapper = new Mapper({ container: container });
+
+container.put('validator', function (params) { 
+  return new Validator(params); 
+});
+
+container.put('encoder', function (params) { 
+  return new Transcoder(params); 
+});
+
+container.put('decoder', function (params) { 
+  return new Transcoder(params); 
+});
 
 container.put('gene/schema', {
   entity: 'gene',

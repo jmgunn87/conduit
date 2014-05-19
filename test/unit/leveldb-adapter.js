@@ -1,11 +1,9 @@
 var assert = require('assert');
+var Container = require('./../../src/container');
 var LevelDBAdapter = require('./../../src/leveldb-adapter');
 
 describe('LevelDBAdapter', function () {
 
-  var adapter = new LevelDBAdapter({
-    path: '/tmp/ldbtest.db'
-  });
 
   var fields = {
     entity   : { type: 'entity',   entity: 'OtherTest' },
@@ -33,6 +31,11 @@ describe('LevelDBAdapter', function () {
     datetime : new Date(),
     time     : new Date()
   };
+
+  var adapter = new LevelDBAdapter({
+    container: new Container(),
+    path: '/tmp/ldbtest.db'
+  });
 
   before(function (done) {
     adapter.connect(done);

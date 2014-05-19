@@ -91,15 +91,13 @@ SQLite3Adapter.prototype.disconnect = function (callback) {
 
 SQLite3Adapter.prototype.createTable = function (callback) {
   try {
-    var sql = this.templates.createTable({
+    this.exec(this.templates.createTable({
       entity: this.entity,
       schema: this.schema,
-    });
+    }), [], callback);
   } catch (e) {
     return callback(e); 
   }
-
-  this.exec(sql, [], callback);
 };
 
 SQLite3Adapter.prototype.dropTable = function (callback) {
@@ -130,23 +128,22 @@ SQLite3Adapter.prototype._put = function (id, model, options, callback) {
     if (err) return callback(err);
 
     try {
-      var sql = template({
+      self.exec(template({
         entity: entity,
         fields: fields,
         values: values
+      }), [], function (err) {
+        callback(err, this.lastID);
       });
     } catch (e) {
       return callback(e); 
     }
-
-    self.exec(sql, [], function (err) {
-      callback(err, this.lastID);
-    });
   });
 };
 
 SQLite3Adapter.prototype._get = function (id, options, callback) {
   var self = this;
+  var sql = '';
   var entity = this.entity;
   var schema = this.schema;
   var client = this.client; 
@@ -162,7 +159,7 @@ SQLite3Adapter.prototype._get = function (id, options, callback) {
 
   client.serialize(function() {
     try {
-      var sql = template({
+      sql = template({
         entity: entity,
         fields: options.fields,
         query: options.query,
@@ -195,15 +192,13 @@ SQLite3Adapter.prototype._del = function (id, options, callback) {
     _.template(options.template) : this.templates.del;
 
   try {
-    var sql = template({ 
+    this.exec(template({ 
       entity: this.entity, 
       id: id 
-    });
+    }), [], callback);
   } catch (e) { 
     return callback(e); 
   }
-
-  this.exec(sql, [], callback);
 };
 
 SQLite3Adapter.prototype.exec = function (sql, options, callback) {

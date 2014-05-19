@@ -112,7 +112,7 @@ Model.prototype._get = function (k, o, done) {
     if (typeof value === 'string') {
       return this.mapper.get(field.entity, value, done);
     } else if (!value && field.mapped) {
-      var o = Object(o);
+      o = Object(o);
       o.query = o.query || {};
       o.query[field.mapped] = this.store.id;
       return this.mapper.get(field.entity, o, done);
