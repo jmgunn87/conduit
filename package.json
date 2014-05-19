@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "lint": "jshint src/*.js index.js",
-    "test": "npm run lint && istanbul cover _mocha ./test/**/*.js -- -R spec -t 10000",
-    "test-browser": "mocha-phantomjs -R dot test/index.html",
-    "build-browser-dev": "browserify browser.js > conduit.js",
+    "test": "npm run lint && istanbul cover _mocha ./test/unit/*.js -- -R spec -t 10000",
+    "test-browser": "npm run build-browser-dev && mocha-phantomjs -R dot test/browser/index.html",
+    "build-browser-dev": "browserify -r assert -r lodash -r ./src/model:model -r ./src/container:container -r ./src/websql-adapter:websql-adapter browser.js > conduit.js",
     "build-browser": "browserify browser.js | uglifyjs -mc > conduit.min.js",
     "build": "npm run build-browser"
   },

@@ -1,8 +1,8 @@
 var assert = require('assert');
 var _ = require('lodash');
-var Model = require('./../../src/model');
-var Container = require('./../../src/container');
-var WebSQLAdapter = require('./../../src/websql-adapter');
+var Model = require('model');
+var Container = require('container');
+var WebSQLAdapter = require('websql-adapter');
 
 describe('WebSQLAdapter', function () {
 
@@ -43,7 +43,7 @@ describe('WebSQLAdapter', function () {
   var insertID = null;
   var adapter = new WebSQLAdapter({
     entity: 'TestEntity',
-    path: '/tmp/sqlite3test.db',
+    name: 'testdb',
     container: new Container({
       'TestEntity/schema': schemas.TestEntity
     })

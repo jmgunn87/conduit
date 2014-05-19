@@ -94,7 +94,7 @@ WebSQLAdapter.prototype.connect = function (callback) {
 };
 
 WebSQLAdapter.prototype.disconnect = function (callback) {
-  this.client.close(callback);
+  callback(null);
 };
 
 WebSQLAdapter.prototype.createTable = function (callback) {
@@ -210,6 +210,7 @@ WebSQLAdapter.prototype.exec = function (sql, options, callback) {
   var client = this.client;
   client.transaction(function (tx) {
     tx.executeSql(sql, options, function (tx, results) {
+      console.log(results);
       if (results.rowsAffected === 1) return callback(null, results.insertId);
       var arrayRows = [];
       var rows = results.rows;
