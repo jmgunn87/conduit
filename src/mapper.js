@@ -13,20 +13,21 @@ function Mapper(config) {
 Mapper.prototype = Object.create(Model.prototype);
 
 Mapper.prototype._put = function(entity, instance, options, done) {
-  var s = this;
-  this.map(entity, instance, function (e, i, r, d) {
-    if (i.clean) return d(null, r.id);
-    r.id = r.id || uuid.v4();
-    i.preUpdate(function (err) {
-      if (err) return d(err);
-      s.container.get(e.entity + '/adapter')
-        .put(r.id, r, function (err, id) {
+  var self = this;
+  this.map(entity, instance, function (schema, instance, data, done) {
+    if (instance.clean) return done(null, data.id);
+    data.id = data.id || uuid.v4();
+    instance.preUpdate(function (err) {
+      if (err) return done(err);
+      self.container
+        .get(schema.entity + '/adapter')
+        .put(data.id, data, function (err, id) {
           if (err) return d(err);
-          i.store.id = id;
-          i.clean = true;
-          i.postUpdate(function (err) {
-            if (err) return d(err);
-            d(err, id);
+          instance.store.id = id;
+          instance.clean = true;
+          instance.postUpdate(function (err) {
+            if (err) return done(err);
+            done(err, id);
           });
       });
     });
@@ -34,7 +35,7 @@ Mapper.prototype._put = function(entity, instance, options, done) {
 };
 
 Mapper.prototype._get = function(entity, id, done) {
-  var s = this;
+  var self = this;
   var options = {}; 
     
   if (typeof id === 'object') {
@@ -42,34 +43,36 @@ Mapper.prototype._get = function(entity, id, done) {
     id = undefined;
   }
 
-  s.container.get(entity + '/adapter')
-    .get(id, options, function (e, v) {
-      if (e) return done(e);
-      if (_.isArray(v)) {
-        var numResults = v.length;
+  self.container.get(entity + '/adapter')
+    .get(id, options, function (err, model) {
+      if (err) return done(err);
+      if (_.isArray(model)) {
+        var numResults = model.length;
         for (var i=0; i < numResults; ++i) {
-          v[i] = s.container.get(entity + '/model', v[i]);
+          model[i] = self.container.get(entity + '/model', model[i]);
         }
-        v = id ? v[0] : v;//not a collection
+        model = id ? model[0] : model;//not a collection
       } else {
-        v = s.container.get(entity + '/model', v);
+        model = self.container.get(entity + '/model', model);
       }
-      done(null, v);
+      done(null, model);
     });
 };
 
 Mapper.prototype._del = function(entity, id, done) {
-  var s = this;
-  s.container
+  var self = this;
+  self.container
     .get(entity + '/adapter')
-    .get(id, function (e, v) {
-      s.map(entity, s.container.get(entity + '/model', v), function (e, i, r, d) {
-        i.preUpdate(function (err) {
-          if (err) return d(err);
-          s.container.get(e.entity + '/adapter')
-            .del(i.store.id || r.id, function (err) {
-              if (err) return d(err);
-              i.postUpdate(d);
+    .get(id, function (e, model) {
+      self.map(entity, self.container.get(entity + '/model', model),
+        function (schema, instance, data, done) {
+        instance.preUpdate(function (err) {
+          if (err) return done(err);
+          self.container
+            .get(schema.entity + '/adapter')
+            .del(instance.store.id || data.id, function (err) {
+              if (err) return done(err);
+              instance.postUpdate(done);
             });
         });
       }, done);
