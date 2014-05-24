@@ -37,25 +37,19 @@ Mapper.prototype._put = function(entity, instance, options, done) {
 Mapper.prototype._get = function(entity, id, done) {
   var self = this;
   var options = {}; 
-    
   if (typeof id === 'object') {
     options = id;
     id = undefined;
   }
 
   self.container.get(entity + '/adapter')
-    .get(id, options, function (err, model) {
+    .get(id, options, function (err, result) {
       if (err) return done(err);
-      if (_.isArray(model)) {
-        var numResults = model.length;
-        for (var i=0; i < numResults; ++i) {
-          model[i] = self.container.get(entity + '/model', model[i]);
-        }
-        model = id ? model[0] : model;//not a collection
-      } else {
-        model = self.container.get(entity + '/model', model);
-      }
-      done(null, model);
+      done(null, !_.isArray(result) ?
+        self.container.get(entity + '/model', result) :
+        _.map(model, function (model) {
+          return self.container.get(entity + '/model', result);
+        }));
     });
 };
 
