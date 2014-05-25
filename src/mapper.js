@@ -22,7 +22,7 @@ Mapper.prototype._put = function(entity, instance, options, done) {
       self.container
         .get(schema.entity + '/adapter')
         .put(data.id, data, function (err, id) {
-          if (err) return d(err);
+          if (err) return done(err);
           instance.store.id = id;
           instance.clean = true;
           instance.postUpdate(function (err) {
@@ -57,9 +57,9 @@ Mapper.prototype._del = function(entity, id, done) {
   var self = this;
   self.container
     .get(entity + '/adapter')
-    .get(id, function (e, model) {
-      self.map(entity, self.container.get(entity + '/model', model),
-        function (schema, instance, data, done) {
+    .get(id, function (e, data) {
+      var model = self.container.get(entity + '/model', data);
+      self.map(entity, model, function (schema, instance, data, done) {
         instance.preUpdate(function (err) {
           if (err) return done(err);
           self.container

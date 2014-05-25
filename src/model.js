@@ -89,7 +89,8 @@ Model.prototype._put = function (k, v, o, done) {
     var mappedField = field.mapped;
     if (mappedField) {
       if (_.isArray(v)) {
-        for(var i=0, l = v.length; i < l; ++i) {
+        var length = v.length;
+        for(var i=0, l = length; i < l; ++i) {
           v[i].store[mappedField] = this; 
           v[i].clean = false;
         }
