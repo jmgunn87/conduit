@@ -1,4 +1,5 @@
 var assert = require('assert');
+var rimraf = require('rimraf');
 var _ = require('lodash');
 var Model = require('./../../src/model');
 var Container = require('./../../src/container');
@@ -54,7 +55,9 @@ describe('SQLite3Adapter', function () {
   });
 
   after(function (done) {
-    adapter.disconnect(done);
+    adapter.disconnect(function () {
+      rimraf('/tmp/sqlite3test.db', done);
+    });
   });
 
   describe("#constructor", function () {
@@ -66,14 +69,28 @@ describe('SQLite3Adapter', function () {
       assert.equal(adapter.schema.entity, 'TestEntity');
     });
   });
-  describe('#createTable', function () {
-    it('creates a db table for a given schema', function (done) {
-      adapter.createTable(done);
-    });
-  });
   describe("#connect", function () {
     it("pools/caches connections if the already exist for the given path", function (done) {
       adapter.connect(done);
+    });
+  });
+  describe("#migrate", function () {
+    it("does not generate any migrations for an unchanged entity", function (done) {
+      adapter.migrate(function (err, migration) {
+        if (err) throw err;
+        done();
+      });
+    });
+
+    it("generates a migration if an entity has changes", function (done) {
+      adapter.schema.fields.time.type = 'string';
+      adapter.schema.fields.date.length = 1;
+      adapter.migrate(function (err) {
+        if (err) throw err;
+        adapter.schema.fields.time.type = 'time';
+        adapter.schema.fields.date.length = 255;
+        done();
+      });
     });
   });
   describe('#put', function () {
@@ -156,11 +173,6 @@ describe('SQLite3Adapter', function () {
   describe('#exec', function () {
     it('executes arbritrary sql statements', function (done) {
       adapter.exec('SELECT COUNT(*) FROM TestEntity', [], done);
-    });
-  });
-  describe('#dropTable', function () {
-    it('drops an existing table', function (done) {
-      adapter.dropTable(done);
     });
   });
 });

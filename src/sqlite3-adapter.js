@@ -21,34 +21,50 @@ SQLite3Adapter.decoders.boolean = function (v, o, d) {
 
 SQLite3Adapter.validators = {};
 
+SQLite3Adapter.typeMap = {
+  'entity': 'INTEGER',
+  'object': 'CLOB',
+  'array': 'CLOB',
+  'string': 'VARCHAR',
+  'boolean': 'INTEGER',
+  'float': 'FLOAT',
+  'integer': 'INTEGER',
+  'datetime': 'DATETIME',
+  'date': 'DATETIME',
+  'time': 'TIMESTAMP'
+};
+
 SQLite3Adapter.templates = {
-  'createTable': _.template([
+  createTable: _.template([
     'CREATE TABLE IF NOT EXISTS <%= entity %> (',
       '<% var first = true; %>',
       '<% for (var key in schema.fields) { %>',
         '<% if (first) { first = 0 } else { %>, <% } %>',
         '<% var field = schema.fields[key]; %>',
-        '<%= key %>',
-        '<% if (field.type === "entity")          { %> INTEGER',
-        '<% } else if (field.type === "object")   { %> CLOB',
-        '<% } else if (field.type === "array")    { %> CLOB',
-        '<% } else if (field.type === "string")   { %> VARCHAR',
-        '<% } else if (field.type === "boolean")  { %> INTEGER',
-        '<% } else if (field.type === "float")    { %> FLOAT',
-        '<% } else if (field.type === "integer")  { %> INTEGER',
-        '<% } else if (field.type === "datetime") { %> DATETIME',
-        '<% } else if (field.type === "date")     { %> DATETIME',
-        '<% } else if (field.type === "time")     { %> TIMESTAMP',
-        '<% } else { %> VARCHAR<% } ; %>',
+        '<%= key %> <%= types[field.type] || types["string"] %>',
         '<% if (field.length) { %> (<%= parseInt(field.length, 10) %>) <% } %>',
         '<% if (schema.id === key) { %> PRIMARY KEY AUTOINCREMENT <% } %>',
       '<% } %>',
     ');'
   ].join('')),
-  'dropTable': _.template([
+  rebuildTable: _.template([
+    'BEGIN TRANSACTION;',
+    'ALTER TABLE <%= entity %> RENAME TO <%= entity %>_backup;',
+    '<%= templates.createTable({ entity: entity, schema: schema, types: types  }) %>',
+    'INSERT INTO <%= entity %> SELECT * FROM <%= entity %>_backup;',
+    'DROP TABLE <%= entity %>_backup;',
+    'COMMIT;'
+  ].join('')),
+  dropTable: _.template([
     'DROP TABLE <%= entity %>'
   ].join('')),
-  'get': _.template([
+  addColumn: _.template([
+    'ALTER TABLE <%= entity %> ADD COLUMN <%= name %> ',
+    '<%= types[field.type] || types["string"] %>',
+    '<% if (field.length) { %> (<%= parseInt(field.length, 10) %>) <% } %>',
+    '<% if (schema.id === key) { %> PRIMARY KEY AUTOINCREMENT <% } %>',
+  ].join('')),
+  get: _.template([
     'SELECT <%= fields ? fields.join(",") : "*" %> FROM <%= entity %>',
     '<% if (query) { %> WHERE ',
       '<% var first = true; %>',
@@ -60,10 +76,10 @@ SQLite3Adapter.templates = {
     '<% if (limit) { %> LIMIT <%= limit  %> <% } %>',
     '<% if (offset) { %> OFFSET <%= offset %> <% } %> '
   ].join('')),
-  'put': _.template([
-    'INSERT INTO <%= entity %> (<%= fields.join(",") %>) VALUES (<%= values.join(",") %>)',
+  put: _.template([
+    'INSERT OR REPLACE INTO <%= entity %> (<%= fields.join(",") %>) VALUES (<%= values.join(",") %>)',
   ].join('')),
-  'del': _.template([
+  del: _.template([
     'DELETE FROM <%= entity %> WHERE id=<%= id %>'
   ].join(''))
 };
@@ -71,8 +87,9 @@ SQLite3Adapter.templates = {
 function SQLite3Adapter(config) {
   this.config = config;
   this.entity = config.entity;
-  this.templates = config.templates || SQLite3Adapter.templates;
   this.container = config.container;
+  this.templates = config.templates || SQLite3Adapter.templates;
+  this.typeMap = config.typeMap || SQLite3Adapter.typeMap;
   this.schema = config.schema = this.container.get(
     this.entity + '/schema'
   );
@@ -89,21 +106,84 @@ SQLite3Adapter.prototype.disconnect = function (callback) {
   this.client.close(callback);
 };
 
-SQLite3Adapter.prototype.createTable = function (callback) {
-  try {
-    this.exec(this.templates.createTable({
-      entity: this.entity,
-      schema: this.schema,
-    }), [], callback);
-  } catch (e) {
-    return callback(e); 
-  }
-};
+SQLite3Adapter.prototype.migrate = function (callback) {
+  var self = this;
+  var entity = this.entity;
+  var schema = this.schema;
+  var types = this.typeMap;
+  var client = this.client;
+  var templates = this.templates;
 
-SQLite3Adapter.prototype.dropTable = function (callback) {
-  this.exec(this.templates.dropTable({ 
-    entity: this.entity 
-  }), [], callback);
+  if (!schema.fields) {
+    return this.exec(this.templates.dropTable({
+      types: types,
+      entity: entity,
+      schema: schema
+    }), [], callback);
+  }
+  
+  client.serialize(function() {
+    client.all('PRAGMA table_info(' + entity + ')', [], function (err, meta) {
+      if (err || !meta || !meta.length) {
+        return self.exec(self.templates.createTable({
+          types: types,
+          entity: entity,
+          schema: schema
+        }), [], callback);
+      }
+
+      var seen = [];
+      var rebuild = false;
+      var metaLength = meta.length;
+      for (var i=0; i < metaLength; ++i) {
+        var metaField = meta[i];
+        var field = schema.fields[metaField.name];
+
+        if (!field) {
+          rebuild = true;
+          break;
+        }
+
+        seen.push(metaField.name);
+
+        var type = /(.*) (\((.*)\))/.exec(metaField.type) || [,metaField.type];
+        var typeName = type[1];
+        var typeLength = type[3] ? parseInt(type[3], 10) : undefined;
+        var fieldTypeName = types[field.type] || types["string"];
+        var fieldLength = field.length ? parseInt(field.length, 10) : undefined;
+        if (typeName !== fieldTypeName ||
+            typeLength !== fieldLength ||
+            (metaField.pk && schema.id !== metaField.name)) {
+          rebuild = true;
+          break;
+        }
+      }
+
+      if (!rebuild) {
+        var migration = [];
+        for(var key in schema) {
+          if (seen.indexOf(key) === -1) {
+            migration.push(self.templates.addColumn({
+              name: key,
+              types: types,
+              entity: entity,
+              schema: schema,
+              field: schema[key]
+            }));
+            continue;
+          }
+        }
+        return self.exec(migration.join(';\n'), [], callback);
+      }
+
+      self.exec(self.templates.rebuildTable({
+        types: types,
+        entity: entity,
+        schema: schema,
+        templates: templates
+      }), [], callback);
+    });
+  });
 };
 
 SQLite3Adapter.prototype._put = function (id, model, options, callback) {
