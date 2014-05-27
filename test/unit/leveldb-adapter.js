@@ -4,7 +4,6 @@ var LevelDBAdapter = require('./../../src/leveldb-adapter');
 
 describe('LevelDBAdapter', function () {
 
-
   var fields = {
     entity   : { type: 'entity',   entity: 'OtherTest' },
     object   : { type: 'object',   length: 255 },
@@ -51,9 +50,9 @@ describe('LevelDBAdapter', function () {
     });
   });
 
-  describe("#createTable", function () {
+  describe("#migrate", function () {
     it("creates a db table for a given schema", function (done) {
-      adapter.createTable(done);
+      adapter.migrate(done);
     });
   });
   describe("#put", function () {
@@ -88,11 +87,6 @@ describe('LevelDBAdapter', function () {
   describe("#del", function () {
     it("deletes an entity", function (done) {
       adapter.del(values.id, done);
-    });
-  });
-  describe("#dropTable", function () {
-    it("drops an existing table", function (done) {
-      adapter.dropTable(done);
     });
   });
 });

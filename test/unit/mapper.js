@@ -56,6 +56,7 @@ describe('Mapper', function () {
     container = new Container();
     container.put('gene/schema', schemas.gene);
     container.put('child/schema', schemas.child);
+    
     container.put('gene/adapter', function (p) { 
       var adapter = new Model(p);
       adapter._put = function (id, model, options, callback) {
@@ -64,6 +65,7 @@ describe('Mapper', function () {
       };
       return adapter;
     }, true);
+    
     container.put('child/adapter', function (p) { 
       var adapter = new Model(p);
       adapter._put = function (id, model, options, callback) {
@@ -72,6 +74,7 @@ describe('Mapper', function () {
       };
       return adapter;
     }, true);
+    
     container.put('noschema/adapter', function (p) { 
       var adapter = new Model(p);
       adapter._put = function (id, model, options, callback) {
@@ -80,11 +83,13 @@ describe('Mapper', function () {
       };
       return adapter;
     }, true);
+
     container.put('gene/model', function (p) { p.schema = schemas.gene; return new Model(p); });
     container.put('child/model', function (p) { p.schema = schemas.child; return new Model(p); });
     container.put('noschema/model', function (p) { p.schema = schemas.gene; return new Model(p); });
     mapper = new Mapper({ container: container });
     model = new Model({ schema: schemas.gene });
+    
     model.put({
       title: 'HUMANGENOME',
       symbol: 'Labels',

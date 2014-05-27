@@ -1,27 +1,17 @@
 var async = require('async');
-var Model = require('./src/model');
-var Mapper = require('./src/mapper');
-var Container = require('./src/container');
-var SQLite3Adapter = require('./src/sqlite3-adapter');
-var LevelDBAdapter = require('./src/leveldb-adapter');
-var Transcoder = require('./src/transcoder');
-var Validator = require('./src/validator');
-
+var Model = require('./../src/model');
+var Mapper = require('./../src/mapper');
+var Container = require('./../src/container');
+var MemoryAdapter = require('./../src/memory-adapter');
+var SQLite3Adapter = require('./../src/sqlite3-adapter');
+var Transcoder = require('./../src/transcoder');
+var Validator = require('./../src/validator');
 var container = new Container();
 var mapper = new Mapper({ container: container });
 
-container.put('validator', function (params) { 
-  return new Validator(params); 
-});
-
-container.put('encoder', function (params) { 
-  return new Transcoder(params); 
-});
-
-container.put('decoder', function (params) { 
-  return new Transcoder(params); 
-});
-
+container.put('validator', function (params) { return new Validator(params); });
+container.put('encoder', function (params) { return new Transcoder(params); });
+container.put('decoder', function (params) { return new Transcoder(params); });
 container.put('gene/schema', {
   entity: 'gene',
   id: 'id',
@@ -30,15 +20,7 @@ container.put('gene/schema', {
     tag: { type: 'text' },
     one2one: {
       type: 'entity',
-      entity: 'gene',
-      fields: {
-        id: { type: 'integer' },
-        tag: { type: 'text' },
-        one2one: {
-          type: 'entity',
-          entity: 'gene'
-        }
-      }
+      entity: 'gene'
     },
     many2one: {
       type: 'entity',
@@ -91,16 +73,16 @@ container.put('child/model', function (values) {
 container.put('gene/adapter', function () {
   return new SQLite3Adapter({ 
     entity: 'gene',
-    container: container, 
-    path: '/tmp/mappt.db'
+    container: container,
+    path: '/tmp/bench.db3'
   });
 }, true);
 
 container.put('child/adapter', function () {
-  return new LevelDBAdapter({ 
+  return new SQLite3Adapter({ 
     entity: 'child',
     container: container, 
-    path: '/tmp/mappt.ddb'
+    path: '/tmp/bench.db3'
   });
 }, true);
 
@@ -131,36 +113,16 @@ async.parallel([
     ]
   });
 
-  mapper.put('gene', gene, function (e, id) {
-    if (e) {
-      console.log(e.stack);
-      return;
-    }
+  var cycles = 2;
+  var start = +new Date();
+  async.timesSeries(cycles, function (n, done) {
+    gene.store.id = undefined;
+    mapper.put('gene', gene, done);
+  }, function () {
+    var end = +new Date();
+    var diff = end - start;
+    var cycle = diff / cycles;
+    console.log('done in ' + diff + 'ms, cycle ' + cycle + 'ms');
+  });
 
-    mapper.get('gene', {
-      template: [
-        'SELECT <%= fields ? fields.join(",") : "*" %> FROM <%= entity %>',
-        '<% if (limit) { %> LIMIT <%= limit  %> <% } %>',
-        '<% if (offset) { %> OFFSET <%= offset %> <% } %> '
-      ].join(''),
-      query: {
-        tag: 'root'
-      },
-      fields: ['id'],
-      offset: 10,
-      limit: 10
-    }, function (e, r) {
-      console.log(e ? e.stack : e, r?r.length:r);
-    });
-  });
-  /*
-  mapper.put('gene', gene, function (e, id) {
-    mapper.get('gene', id, function (e, ve) {
-      console.log(ve);
-      ve.get('one2manyMapped', function (e, v) {
-        console.log(v.length);
-      });
-    });
-  });
-  */
 });

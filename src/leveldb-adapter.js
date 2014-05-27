@@ -31,8 +31,7 @@ LevelDBAdapter.prototype.disconnect = function (callback) {
   this.client.close(callback); 
 };
 
-LevelDBAdapter.prototype.createTable = 
-LevelDBAdapter.prototype.dropTable = function (callback) { 
+LevelDBAdapter.prototype.migrate = function (callback) { 
   return callback(null); 
 };
 

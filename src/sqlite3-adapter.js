@@ -62,7 +62,7 @@ SQLite3Adapter.templates = {
     'ALTER TABLE <%= entity %> ADD COLUMN <%= name %> ',
     '<%= types[field.type] || types["string"] %>',
     '<% if (field.length) { %> (<%= parseInt(field.length, 10) %>) <% } %>',
-    '<% if (schema.id === key) { %> PRIMARY KEY AUTOINCREMENT <% } %>',
+    '<% if (schema.id === name) { %> PRIMARY KEY AUTOINCREMENT <% } %>',
   ].join('')),
   get: _.template([
     'SELECT <%= fields ? fields.join(",") : "*" %> FROM <%= entity %>',
