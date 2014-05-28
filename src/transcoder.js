@@ -4,24 +4,24 @@ var Model = require('./model');
 
 module.exports = Transcoder;
 
-function Transcoder(c) { Model.call(this, c); }
+function Transcoder(config) { Model.call(this, config); }
 
 Transcoder.prototype = Object.create(Model.prototype);
 
-Transcoder.prototype.transcode = function (v, s, d) {
+Transcoder.prototype.transcode = function (value, schema, done) {
   var self = this;
-  async.parallel(_.reduce(s.fields, function (r, f, k) {
-    r[k] = function (callback) {
-      var transcoder = self.get(f.type);
-      if (!transcoder) return callback(null, v[k]);
-      transcoder(v[k], f, function (e, v) {
-        if (e) return callback(e);
-        callback(null, v);
+  async.parallel(_.reduce(schema.fields, function (reduction, field, key) {
+    reduction[key] = function (callback) {
+      var transcoder = self.get(field.type);
+      if (!transcoder) return callback(null, value[key]);
+      transcoder(value[key], field, function (err, value) {
+        if (err) return callback(err);
+        callback(null, value);
       });
     };
-    return r;
+    return reduction;
   }, {}), function (err, result) {
-    if (err) return d(err);
-    return d(null, result);
+    if (err) return done(err);
+    return done(null, result);
   });
 };

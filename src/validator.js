@@ -4,24 +4,24 @@ var Model = require('./model');
 
 module.exports = Validator;
 
-function Validator (c) { Model.call(this, c); }
+function Validator (config) { Model.call(this, config); }
 
 Validator.prototype = Object.create(Model.prototype);
 
-Validator.prototype.validate = function (v, s, d) {
+Validator.prototype.validate = function (value, schema, done) {
   var self = this;
   var hasError = null;
-  async.parallel(_.reduce(s.fields, function (r, f, k) {
-    r[k] = function (callback) {
-      var validator = self.get(f.type);
+  async.parallel(_.reduce(schema.fields, function (reduction, field, key) {
+    reduction[key] = function (callback) {
+      var validator = self.get(field.type);
       if (!validator) return callback();
-      validator(v[k], f, function (err) {
+      validator(value[key], field, function (err) {
         hasError = !!err;
         callback(null, err);
       });
     };
-    return r;
+    return reduction;
   }, {}), function (err, result) {
-    return d(hasError || null, result);
+    return done(hasError || null, result);
   });
 };
