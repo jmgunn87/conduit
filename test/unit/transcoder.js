@@ -5,6 +5,7 @@ describe("Transcoder", function () {
 
   before(function () {
     this.instance = new Transcoder({
+      "_default": function (v, o, d) { return d(null, v); },
       "datetime": function (v, o, d) { return d(null, +v); },
       "secret": function (v, o, d) { return d(null, 'message'); },
       "error": function (v, o, d) { return d(true); }

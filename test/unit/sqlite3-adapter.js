@@ -3,6 +3,8 @@ var rimraf = require('rimraf');
 var _ = require('lodash');
 var Model = require('./../../src/model');
 var Container = require('./../../src/container');
+var Transcoder = require('./../../src/transcoder');
+var Validator = require('./../../src/validator');
 var SQLite3Adapter = require('./../../src/sqlite3-adapter');
 
 describe('SQLite3Adapter', function () {
@@ -41,13 +43,17 @@ describe('SQLite3Adapter', function () {
     bad      : true
   };
 
+  var container = new Container();
+  container.put('validator', function (params) { return new Validator(params); });
+  container.put('encoder', function (params) { return new Transcoder(params); });
+  container.put('decoder', function (params) { return new Transcoder(params); });
+  container.put('TestEntity/schema', schemas.TestEntity);
+
   var insertID = null;
   var adapter = new SQLite3Adapter({
     entity: 'TestEntity',
     path: '/tmp/sqlite3test.db',
-    container: new Container({
-      'TestEntity/schema': schemas.TestEntity
-    })
+    container: container
   });
 
   before(function (done) {

@@ -12,7 +12,7 @@ Transcoder.prototype.transcode = function (value, schema, done) {
   var self = this;
   async.parallel(_.reduce(schema.fields, function (reduction, field, key) {
     reduction[key] = function (callback) {
-      var transcoder = self.get(field.type);
+      var transcoder = self.get(field.type) || self.get('_default');
       if (!transcoder) return callback(null, value[key]);
       transcoder(value[key], field, function (err, value) {
         if (err) return callback(err);
@@ -21,7 +21,6 @@ Transcoder.prototype.transcode = function (value, schema, done) {
     };
     return reduction;
   }, {}), function (err, result) {
-    if (err) return done(err);
-    return done(null, result);
+    return err ? done(err) : done(null, result);
   });
 };

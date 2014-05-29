@@ -6,17 +6,14 @@ var _ = require('lodash');
 module.exports = SQLite3Adapter;
 
 SQLite3Adapter.encoders = {};
-SQLite3Adapter.encoders.object = 
-SQLite3Adapter.encoders.array = 
-SQLite3Adapter.encoders.boolean = function (v, o, d) {
-  return d(null, "'" + JSON.stringify(v || '').replace(/"/g, '\\"') + "'");
+SQLite3Adapter.encoders._default = function (v, o, d) {
+  if (v === null || v === undefined) v = 'NULL';
+  return d(null, '\'' + JSON.stringify(v).replace(/"/g, '\\"') + '\'');
 };
 
 SQLite3Adapter.decoders = {};
-SQLite3Adapter.decoders.object = 
-SQLite3Adapter.decoders.array = 
-SQLite3Adapter.decoders.boolean = function (v, o, d) {
-  return d(null, v ? JSON.parse(v.replace(/\\/g, '')) : v);
+SQLite3Adapter.decoders._default= function (v, o, d) {
+  return d(null, typeof v == 'string' ? JSON.parse(v.replace(/\\/g, '')) : v);
 };
 
 SQLite3Adapter.validators = {};
@@ -90,9 +87,10 @@ function SQLite3Adapter(config) {
   this.container = config.container;
   this.templates = config.templates || SQLite3Adapter.templates;
   this.typeMap = config.typeMap || SQLite3Adapter.typeMap;
-  this.schema = config.schema = this.container.get(
-    this.entity + '/schema'
-  );
+  this.schema = config.schema = this.container.get(this.entity + '/schema');
+  this.encoder = this.container.get('encoder', SQLite3Adapter.encoders);
+  this.decoder = this.container.get('decoder', SQLite3Adapter.decoders);
+  this.validator = this.container.get('validator', SQLite3Adapter.validators);
   Model.call(this, config);
 }
 
@@ -196,22 +194,14 @@ SQLite3Adapter.prototype._put = function (id, model, options, callback) {
     return v !== schema.id;
   });
 
-  async.map(fields, function (fieldName, callback) {
-    var field = schema.fields[fieldName];
-    var encoder = SQLite3Adapter.encoders[field.type];
-    encoder ? encoder(model[fieldName], {}, callback) :
-      callback(null, model[fieldName] ? 
-               '\'' + model[fieldName] + '\'' : 
-               'NULL');
-
-  }, function (err, values) {
+  this.encoder.transcode(model, schema, function (err, values) {
     if (err) return callback(err);
-
+    delete values.id;
     try {
       self.exec(template({
         entity: entity,
         fields: fields,
-        values: values
+        values: _.values(values)
       }), [], function (err) {
         callback(err, this.lastID);
       });
@@ -227,6 +217,7 @@ SQLite3Adapter.prototype._get = function (id, options, callback) {
   var entity = this.entity;
   var schema = this.schema;
   var client = this.client; 
+  var decoder = this.decoder;
   var template = options && options.template ? 
     _.template(options.template) : this.templates.get;
 
@@ -253,14 +244,7 @@ SQLite3Adapter.prototype._get = function (id, options, callback) {
     client.all(sql, [], function (err, result) {
       if (err) return callback(err);
       async.map(result, function (item, done) { 
-        async.parallel(_.reduce(item, function (r, v, fieldName) {
-          r[fieldName] = function (callback) {
-            var field = schema.fields[fieldName];
-            var decoder = SQLite3Adapter.decoders[field.type];
-            decoder ? decoder(v, {}, callback) : callback(null, v);
-          };
-          return r;
-        }, {}), done);
+        decoder.transcode(item, schema, done);
       }, callback);
     });
 
