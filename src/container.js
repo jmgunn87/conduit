@@ -7,8 +7,8 @@ Container.prototype = Object.create(Model.prototype);
 Container.prototype._put = function (key, value, options, done) {
   return done(null, this.store[key] = !options ? value : function (params) {
     this.cached = this.cached || {};
-    return this.cached[key] =
-      this.cached[key] || value(params);
+    this.cached[key] = this.cached[key] || value(params);
+    return this.cached[key];
   });
 };
 
