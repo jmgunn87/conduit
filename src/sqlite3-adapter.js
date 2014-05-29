@@ -149,7 +149,7 @@ SQLite3Adapter.prototype.migrate = function (callback) {
         var type = /(.*) (\((.*)\))/.exec(metaField.type) || [,metaField.type];
         var typeName = type[1];
         var typeLength = type[3] ? parseInt(type[3], 10) : undefined;
-        var fieldTypeName = types[field.type] || types["string"];
+        var fieldTypeName = types[field.type] || types.string;
         var fieldLength = field.length ? parseInt(field.length, 10) : undefined;
         if (typeName !== fieldTypeName ||
             typeLength !== fieldLength ||
@@ -201,8 +201,8 @@ SQLite3Adapter.prototype._put = function (id, model, options, callback) {
     var encoder = SQLite3Adapter.encoders[field.type];
     encoder ? encoder(model[fieldName], {}, callback) :
       callback(null, model[fieldName] ? 
-               "'" + model[fieldName] + "'" : 
-               "NULL");
+               '\'' + model[fieldName] + '\'' : 
+               'NULL');
 
   }, function (err, values) {
     if (err) return callback(err);

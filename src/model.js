@@ -16,6 +16,14 @@ function Model(config) {
 
 Model.prototype = Object.create(EventEmitter.prototype);
 
+['put', 'get', 'del'].forEach(function (key) {
+  Model.prototype[key] = function () {
+    return this._dispatch(key, 
+      Array.prototype.slice.call(arguments, 0)
+    ); 
+  };
+});
+
 Model.prototype._dispatch = function (methodName, args) {
   var sync = false;
   var keyType = typeof args[0];
@@ -27,9 +35,9 @@ Model.prototype._dispatch = function (methodName, args) {
     args[offset] = undefined;
   } else if (!args[offset + 1]) {
     sync = true; 
-    args[offset + 1] = function (e, v) {
-      if (e) throw e;
-      return v;
+    args[offset + 1] = function (err, value) {
+      if (err) throw err;
+      return value;
     };
   }
 
@@ -48,7 +56,7 @@ Model.prototype._dispatch = function (methodName, args) {
   try {
     return this[camelKey] ?
       this[camelKey].apply(this, args.slice(1)) :
-      this["_" + methodName].apply(this, args);
+      this['_' + methodName].apply(this, args);
   } catch (err) {
     return args[offset + 1](err);
   }
@@ -56,76 +64,69 @@ Model.prototype._dispatch = function (methodName, args) {
 
 Model.prototype._syncBatch = function (methodName, batch) {
   var self = this;
-  return _.reduce(batch, function (r, v, k) {
-    if (typeof k === 'number') k = v;
-    r[k] = self[methodName](k, v);
-    return r;
+  return _.reduce(batch, function (reduction, value, key) {
+    if (typeof key === 'number') key = value;
+    reduction[key] = self[methodName](key, value);
+    return reduction;
   }, {});
 };
 
 Model.prototype._asyncBatch = function (methodName, batch, done) {
   var self = this;
-  return async.parallel(_.reduce(batch, function (r, d, n) {
-    if (typeof n === 'number') n = d;
-    r[n] = function (cb) {
-      self[methodName](n, d, cb);
+  return async.parallel(_.reduce(batch, function (reduction, options, key) {
+    if (typeof key === 'number') key = options;
+    reduction[key] = function (callback) {
+      self[methodName](key, options, callback);
     };
-    return r;
+    return reduction;
   }, {}), done);
 };
 
-["put", "get", "del"].forEach(function (key) {
-  Model.prototype[key] = function () {
-    return this._dispatch(key, 
-      Array.prototype.slice.call(arguments, 0)
-    ); 
-  };
-});
+Model.prototype._put = function (key, value, options, done) {
+  var field = this.schema && this.schema.fields &&
+    this.schema.fields[key] || {};
 
-Model.prototype._put = function (k, v, o, done) {
-  this.clean = false;
-  if (this.schema.fields && this.schema.fields[k]) {
-    var field = this.schema.fields[k];
+  if (field.mapped) {
     var mappedField = field.mapped;
-    if (mappedField) {
-      if (_.isArray(v)) {
-        for(var i=0, l = v.length; i < l; ++i) {
-          v[i].store[mappedField] = this; 
-          v[i].clean = false;
-        }
-      } else {
-        v.store[mappedField] = this; 
-        v.clean = false;
+    if (_.isArray(value)) {
+      for(var i=0, l = value.length; i < l; ++i) {
+        value[i].store[mappedField] = this; 
+        value[i].clean = false;
       }
+    } else {
+      value.store[mappedField] = this; 
+      value.clean = false;
     }
   }
 
-  return done(null, this.store[k] = v); 
+  this.clean = false;
+  return done(null, this.store[key] = value); 
 };
 
-Model.prototype._get = function (k, o, done) {
-  var value = this.store[k];
-  var field = this.schema  && this.schema.fields ? 
-    this.schema.fields[k] : {};
+Model.prototype._get = function (key, options, done) {
+  var value = this.store[key];
+  var field = this.schema && this.schema.fields &&
+    this.schema.fields[key] || {};
   
-  if (field && field.entity && this.mapper) {
+  if (field.entity && this.mapper) {
     if (typeof value === 'string') {
       return this.mapper.get(field.entity, value, done);
     } else if (!value && field.mapped) {
-      o = Object(o);
-      o.query = o.query || {};
-      o.query[field.mapped] = this.store.id;
-      return this.mapper.get(field.entity, o, done);
+      options = Object(options);
+      options.query = options.query || {};
+      options.query[field.mapped] = this.store.id;
+      return this.mapper.get(field.entity, options, done);
     }
   }
 
   return !value && this.parent ? 
-    this.parent._get(k, o, done) : done(null, value);
+    this.parent._get(key, options, done) : 
+    done(null, value);
 };
 
-Model.prototype._del = function (k, o, done) {
+Model.prototype._del = function (key, options, done) {
   this.clean = false;
-  return done(null, delete this.store[k]); 
+  return done(null, delete this.store[key]);
 };
 
 Model.prototype.preUpdate = 

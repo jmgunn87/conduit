@@ -113,7 +113,7 @@ async.parallel([
     ]
   });
 
-  var cycles = 2;
+  var cycles = 10;
   var start = +new Date();
   async.timesSeries(cycles, function (n, done) {
     gene.store.id = undefined;
