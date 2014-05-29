@@ -139,9 +139,9 @@ describe('SQLite3Adapter', function () {
         assert.deepEqual(entity.boolean, values.boolean);
         assert.deepEqual(entity.float, values.float);
         assert.deepEqual(entity.integer, values.integer);
-        assert.deepEqual(entity.date, values.date.toString());
-        assert.deepEqual(entity.datetime, values.datetime.toString());
-        assert.deepEqual(entity.time, values.time.toString());
+        assert.deepEqual(entity.date, values.date);
+        assert.deepEqual(entity.datetime, values.datetime);
+        assert.deepEqual(entity.time, values.time);
         done();
       }); 
     });
