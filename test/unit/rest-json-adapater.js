@@ -1,5 +1,6 @@
 var assert = require('assert');
-var RestJsonAdapter = require('./../../src/leveldb-adapter');
+var http = require('http');
+var RestJsonAdapter = require('./../../src/rest-json-adapter');
 var Container = require('./../../src/container');
 var Transcoder = require('./../../src/transcoder');
 var Validator = require('./../../src/validator');
@@ -45,17 +46,43 @@ describe('RestJsonAdapter', function () {
   container.put('decoder', function (params) { return new Transcoder(params); });
   container.put('TestEntity/schema', schemas.TestEntity);
 
+  var db = {};
+  var server = http.createServer(function (req, res) {
+    var body = '';
+    req.on('data', function (chunk) { body += chunk; });
+    req.on('end', function () { 
+      if (body) body = JSON.parse(body); 
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      switch (req.method) {
+        case 'PUT': 
+          db = body;
+          res.end(body.id);
+          break;
+        case 'GET':
+          res.end(JSON.stringify(
+            req.url === '/1' ? db : [db]
+          ));
+          break;
+        case 'DEL': 
+          res.end('');
+          break;
+      }
+    });
+  })
+
   var adapter = new RestJsonAdapter({
     container: container,
     entity: 'TestEntity',
-    path: '/tmp/ldbtest.db'
+    path: 'http://localhost:6000'
   });
 
   before(function (done) {
+    server = server.listen(6000);
     adapter.connect(done);
   });
 
   after(function (done) {
+    server.close();
     adapter.disconnect(done);
   });
 

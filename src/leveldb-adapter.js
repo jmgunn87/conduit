@@ -24,8 +24,8 @@ LevelDBAdapter.validators = {};
 
 function LevelDBAdapter(config) {
   Model.call(this, this.config = config);
-  this.entity    = config.entity;
   this.container = config.container;
+  this.entity    = config.entity;
   this.schema    = config.schema || this.container.get(this.entity + '/schema');
   this.validator = this.container.get('validator', LevelDBAdapter.validators);
   this.encoder   = this.container.get('encoder', LevelDBAdapter.encoders);

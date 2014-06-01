@@ -97,7 +97,7 @@ function SQLite3Adapter(config) {
   this.container = config.container;
   this.templates = config.templates || SQLite3Adapter.templates;
   this.typeMap   = config.typeMap || SQLite3Adapter.typeMap;
-  this.schema    = config.schema = this.container.get(this.entity + '/schema');
+  this.schema    = config.schema || this.container.get(this.entity + '/schema');
   this.encoder   = this.container.get('encoder', SQLite3Adapter.encoders);
   this.decoder   = this.container.get('decoder', SQLite3Adapter.decoders);
   this.validator = this.container.get('validator', SQLite3Adapter.validators);

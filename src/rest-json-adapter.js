@@ -1,3 +1,5 @@
+var async = require('async');
+var _ = require('lodash');
 var request = require('request');
 var Model = require('./model');
 
@@ -22,6 +24,8 @@ RestJsonAdapter.validators = {};
 function RestJsonAdapter(config) {
   Model.call(this, this.config = config);
   this.container = config.container;
+  this.entity    = config.entity;
+  this.schema    = config.schema || this.container.get(this.entity + '/schema');
   this.validator = this.container.get('validator', RestJsonAdapter.validators);
   this.encoder   = this.container.get('encoder', RestJsonAdapter.encoders);
   this.decoder   = this.container.get('decoder', RestJsonAdapter.decoders);
@@ -37,21 +41,48 @@ RestJsonAdapter.prototype.migrate    = function (callback) {
 
 RestJsonAdapter.prototype._put = function (id, model, options, callback) {
   var self = this;
+  var path = this.config.path;
+
   this.encoder.transcode(model, this.schema, function (err, values) {
     if (err) return callback(err);
-    self.client.put(id, values, function (err) { 
-      callback(err, id); 
+
+    request.put(path + '/' + id, {
+      json: values
+    }, function (err, res, body) {
+      callback(err, body ? body.id : undefined);
     });
   });
 };
 
 RestJsonAdapter.prototype._get = function (id, options, callback) { 
-  this.client.get(id, function (err, value) {
+  var schema = this.schema;
+  var decoder = this.decoder;
+  
+  options = options || {};
+  if (!options.query && id !== 'undefined') {
+    options.query = {};
+    options.query.id = 
+      id !== 'undefined' ? id : undefined;
+  }
+
+  request.get(this.config.path + '/' + (id||''), {
+    query: options.query,
+    json: true
+  }, function (err, res, body) {
     if (err) return callback(err);
-    decoder.transcode(value, schema, callback);
+    if(_.isArray(body)) {
+      async.map(body, function (item, done) { 
+        decoder.transcode(body, schema, done);
+      }, callback);
+    } else {
+      decoder.transcode(body, schema, callback);
+    }
   });
 };
 
 RestJsonAdapter.prototype._del = function (id, options, callback) { 
-  this.client.del(id, callback); 
+  request.get(this.config.path + '/' + id,
+    function (err, res, body) {
+      callback(err);
+    });
 };
