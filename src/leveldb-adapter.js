@@ -66,7 +66,7 @@ LevelDBAdapter.prototype._get = function (id, options, callback) {
   var schema = this.schema;
   var decoder = this.decoder;
 
-  if (id === 'undefined') {
+  if (!id) {
     var query = options ? options.query : undefined;
     var range = options ? options.range : undefined;
     var c = [];

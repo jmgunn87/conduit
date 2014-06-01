@@ -25,6 +25,7 @@ Model.prototype = Object.create(EventEmitter.prototype);
 });
 
 Model.prototype._dispatch = function (methodName, args) {
+  var camelKey;
   var sync = false;
   var keyType = typeof args[0];
   var offset = methodName === 'put' && 
@@ -46,13 +47,14 @@ Model.prototype._dispatch = function (methodName, args) {
       this._asyncBatch(methodName, args[0], args[offset + 1]);
   } 
 
-  args[0] = String(args[0]);
-
   this.emit.apply(this, [methodName].concat(args));
-  
-  var camelKey = methodName + 
-    args[0].charAt(0).toUpperCase() + args[0].substr(1);    
-  
+
+  if (args[0]) {
+    args[0] = String(args[0]);
+    camelKey = methodName + 
+      args[0].charAt(0).toUpperCase() + args[0].substr(1);    
+  }
+
   try {
     return this[camelKey] ?
       this[camelKey].apply(this, args.slice(1)) :

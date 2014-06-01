@@ -59,10 +59,9 @@ RestJsonAdapter.prototype._get = function (id, options, callback) {
   var decoder = this.decoder;
   
   options = options || {};
-  if (!options.query && id !== 'undefined') {
+  if (!options.query && id) {
     options.query = {};
-    options.query.id = 
-      id !== 'undefined' ? id : undefined;
+    options.query.id = id; 
   }
 
   request.get(this.config.path + '/' + (id||''), {
