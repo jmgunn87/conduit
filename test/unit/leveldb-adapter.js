@@ -1,20 +1,29 @@
 var assert = require('assert');
-var Container = require('./../../src/container');
+var rimraf = require('rimraf');
 var LevelDBAdapter = require('./../../src/leveldb-adapter');
+var Container = require('./../../src/container');
+var Transcoder = require('./../../src/transcoder');
+var Validator = require('./../../src/validator');
 
 describe('LevelDBAdapter', function () {
 
-  var fields = {
-    entity   : { type: 'entity',   entity: 'OtherTest' },
-    object   : { type: 'object',   length: 255 },
-    array    : { type: 'array',    length: 255 },
-    string   : { type: 'string',   length: 255 },
-    boolean  : { type: 'boolean',  length: 1   },
-    float    : { type: 'float',    length: 255 },
-    integer  : { type: 'integer',  length: 255 },
-    date     : { type: 'date',     length: 255 },
-    datetime : { type: 'datetime', length: 255 },
-    time     : { type: 'time',     length: 255 }
+  var schemas = {};
+  schemas.TestEntity = {
+    entity: 'TestEntity',
+    id: 'id',
+    fields: { 
+      id       : { type: 'integer' },
+      entity   : { type: 'entity',   entity: 'OtherTest' },
+      object   : { type: 'object',   length: 255 },
+      array    : { type: 'array',    length: 255 },
+      string   : { type: 'string',   length: 255 },
+      boolean  : { type: 'boolean',  length: 1   },
+      float    : { type: 'float',    length: 255 },
+      integer  : { type: 'integer',  length: 255 },
+      date     : { type: 'date',     length: 255 },
+      datetime : { type: 'datetime', length: 255 },
+      time     : { type: 'time',     length: 255 }
+    }
   };
   
   var values = {
@@ -31,8 +40,15 @@ describe('LevelDBAdapter', function () {
     time     : new Date()
   };
 
+  var container = new Container();
+  container.put('validator', function (params) { return new Validator(params); });
+  container.put('encoder', function (params) { return new Transcoder(params); });
+  container.put('decoder', function (params) { return new Transcoder(params); });
+  container.put('TestEntity/schema', schemas.TestEntity);
+
   var adapter = new LevelDBAdapter({
-    container: new Container(),
+    container: container,
+    entity: 'TestEntity',
     path: '/tmp/ldbtest.db'
   });
 
@@ -41,7 +57,9 @@ describe('LevelDBAdapter', function () {
   });
 
   after(function (done) {
-    adapter.disconnect(done);
+    adapter.disconnect(function () {
+      rimraf('/tmp/ldbtest.db', done);
+    });
   });
 
   describe("#connect", function () {
@@ -77,9 +95,9 @@ describe('LevelDBAdapter', function () {
         assert.deepEqual(entity.boolean, values.boolean);
         assert.deepEqual(entity.float, values.float);
         assert.deepEqual(entity.number, values.number);
-        assert.deepEqual(+new Date(entity.date), +values.date);
-        assert.deepEqual(+new Date(entity.datetime), +values.datetime);
-        assert.deepEqual(+new Date(entity.time), +values.time);
+        assert.deepEqual(entity.date, values.date);
+        assert.deepEqual(entity.datetime, values.datetime);
+        assert.deepEqual(entity.time, values.time);
         done();
       }); 
     });

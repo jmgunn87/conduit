@@ -92,7 +92,7 @@ SQLite3Adapter.templates = {
 };
 
 function SQLite3Adapter(config) {
-  this.config = config;
+  Model.call(this, this.config = config);
   this.entity = config.entity;
   this.container = config.container;
   this.templates = config.templates || SQLite3Adapter.templates;
@@ -101,7 +101,6 @@ function SQLite3Adapter(config) {
   this.encoder = this.container.get('encoder', SQLite3Adapter.encoders);
   this.decoder = this.container.get('decoder', SQLite3Adapter.decoders);
   this.validator = this.container.get('validator', SQLite3Adapter.validators);
-  Model.call(this, config);
 }
 
 SQLite3Adapter.prototype = Object.create(Model.prototype);
