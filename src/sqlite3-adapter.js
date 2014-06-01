@@ -10,9 +10,9 @@ SQLite3Adapter.encoders._default = function (v, o, d) {
   if (v === null || v === undefined) v = 'NULL';
   return d(null, '\'' + JSON.stringify(v).replace(/"/g, '\\"') + '\'');
 };
-SQLite3Adapter.encoders.date =
+SQLite3Adapter.encoders.date     =
 SQLite3Adapter.encoders.datetime =
-SQLite3Adapter.encoders.time = function (v, o, d) {
+SQLite3Adapter.encoders.time     = function (v, o, d) {
   return SQLite3Adapter.encoders._default(v.getTime(), o, d);
 };
 
@@ -20,9 +20,9 @@ SQLite3Adapter.decoders = {};
 SQLite3Adapter.decoders._default = function (v, o, d) {
   return d(null, typeof v == 'string' ? JSON.parse(v.replace(/\\/g, '')) : v);
 };
-SQLite3Adapter.decoders.date =
+SQLite3Adapter.decoders.date     =
 SQLite3Adapter.decoders.datetime =
-SQLite3Adapter.decoders.time = function (v, o, d) {
+SQLite3Adapter.decoders.time     = function (v, o, d) {
   return d(null, new Date(v));
 };
 
@@ -93,13 +93,13 @@ SQLite3Adapter.templates = {
 
 function SQLite3Adapter(config) {
   Model.call(this, this.config = config);
-  this.entity = config.entity;
+  this.entity    = config.entity;
   this.container = config.container;
   this.templates = config.templates || SQLite3Adapter.templates;
-  this.typeMap = config.typeMap || SQLite3Adapter.typeMap;
-  this.schema = config.schema = this.container.get(this.entity + '/schema');
-  this.encoder = this.container.get('encoder', SQLite3Adapter.encoders);
-  this.decoder = this.container.get('decoder', SQLite3Adapter.decoders);
+  this.typeMap   = config.typeMap || SQLite3Adapter.typeMap;
+  this.schema    = config.schema = this.container.get(this.entity + '/schema');
+  this.encoder   = this.container.get('encoder', SQLite3Adapter.encoders);
+  this.decoder   = this.container.get('decoder', SQLite3Adapter.decoders);
   this.validator = this.container.get('validator', SQLite3Adapter.validators);
 }
 

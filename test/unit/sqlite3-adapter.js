@@ -75,11 +75,13 @@ describe('SQLite3Adapter', function () {
       assert.equal(adapter.schema.entity, 'TestEntity');
     });
   });
+
   describe("#connect", function () {
     it("pools/caches connections if the already exist for the given path", function (done) {
       adapter.connect(done);
     });
   });
+  
   describe("#migrate", function () {
     it("does not generate any migrations for an unchanged entity", function (done) {
       adapter.migrate(function (err, migration) {
@@ -87,7 +89,6 @@ describe('SQLite3Adapter', function () {
         done();
       });
     });
-
     it("generates a migration if an entity has changes", function (done) {
       adapter.schema.fields.time.type = 'string';
       adapter.schema.fields.date.length = 1;
@@ -99,6 +100,7 @@ describe('SQLite3Adapter', function () {
       });
     });
   });
+
   describe('#put', function () {
     it('inserts an entity into its table', function (done) {
       adapter.put(values.id, values, function (err, id) {
@@ -127,6 +129,7 @@ describe('SQLite3Adapter', function () {
       }); 
     });
   });
+  
   describe('#get', function () {
     it('retreives an entity from its table', function (done) {
       adapter.get(insertID, function (err, entity) {
@@ -163,6 +166,7 @@ describe('SQLite3Adapter', function () {
       }); 
     });
   });
+  
   describe('#del', function () {
     it('deletes an entity', function (done) {
       adapter.del(insertID, done);
@@ -176,9 +180,11 @@ describe('SQLite3Adapter', function () {
       });
     });
   });
+  
   describe('#exec', function () {
     it('executes arbritrary sql statements', function (done) {
       adapter.exec('SELECT COUNT(*) FROM TestEntity', [], done);
     });
   });
+
 });

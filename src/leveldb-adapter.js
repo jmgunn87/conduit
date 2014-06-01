@@ -5,28 +5,31 @@ var Model = require('./model');
 module.exports = LevelDBAdapter;
 
 LevelDBAdapter.connectionPool = {};
+
 LevelDBAdapter.encoders = {};
-LevelDBAdapter.encoders.date =
+LevelDBAdapter.encoders.date     =
 LevelDBAdapter.encoders.datetime =
-LevelDBAdapter.encoders.time = function (v, o, d) {
+LevelDBAdapter.encoders.time     = function (v, o, d) {
   return d(null, v.getTime());
 };
+
 LevelDBAdapter.decoders = {};
-LevelDBAdapter.decoders.date =
+LevelDBAdapter.decoders.date     =
 LevelDBAdapter.decoders.datetime =
-LevelDBAdapter.decoders.time = function (v, o, d) {
+LevelDBAdapter.decoders.time     = function (v, o, d) {
   return d(null, new Date(v));
 };
+
 LevelDBAdapter.validators = {};
 
 function LevelDBAdapter(config) {
   Model.call(this, this.config = config);
-  this.entity = config.entity;
+  this.entity    = config.entity;
+  this.schema    = config.schema = this.container.get(this.entity + '/schema');
   this.container = config.container;
-  this.schema = config.schema = this.container.get(this.entity + '/schema');
   this.validator = this.container.get('validator', LevelDBAdapter.validators);
-  this.encoder = this.container.get('encoder', LevelDBAdapter.encoders);
-  this.decoder = this.container.get('decoder', LevelDBAdapter.decoders);
+  this.encoder   = this.container.get('encoder', LevelDBAdapter.encoders);
+  this.decoder   = this.container.get('decoder', LevelDBAdapter.decoders);
 }
 
 LevelDBAdapter.prototype = Object.create(Model.prototype);

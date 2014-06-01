@@ -1,11 +1,10 @@
 var assert = require('assert');
-var rimraf = require('rimraf');
-var LevelDBAdapter = require('./../../src/leveldb-adapter');
+var RestJsonAdapter = require('./../../src/leveldb-adapter');
 var Container = require('./../../src/container');
 var Transcoder = require('./../../src/transcoder');
 var Validator = require('./../../src/validator');
 
-describe('LevelDBAdapter', function () {
+describe('RestJsonAdapter', function () {
 
   var schemas = {};
   schemas.TestEntity = {
@@ -46,7 +45,7 @@ describe('LevelDBAdapter', function () {
   container.put('decoder', function (params) { return new Transcoder(params); });
   container.put('TestEntity/schema', schemas.TestEntity);
 
-  var adapter = new LevelDBAdapter({
+  var adapter = new RestJsonAdapter({
     container: container,
     entity: 'TestEntity',
     path: '/tmp/ldbtest.db'
@@ -57,19 +56,17 @@ describe('LevelDBAdapter', function () {
   });
 
   after(function (done) {
-    adapter.disconnect(function () {
-      rimraf('/tmp/ldbtest.db', done);
-    });
+    adapter.disconnect(done);
   });
 
   describe("#connect", function () {
-    it("pools/caches connections if the already exist for the given path", function (done) {
+    it("is by default a no-op", function (done) {
       adapter.connect(done);
     });
   });
 
   describe("#migrate", function () {
-    it("creates a db table for a given schema", function (done) {
+    it("by default is a no-op", function (done) {
       adapter.migrate(done);
     });
   });
