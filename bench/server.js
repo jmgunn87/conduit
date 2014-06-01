@@ -1,9 +1,8 @@
 var async = require('async');
+var http = require('http');
 var Model = require('./../src/model');
 var Mapper = require('./../src/mapper');
 var Container = require('./../src/container');
-var MemoryAdapter = require('./../src/memory-adapter');
-var SQLite3Adapter = require('./../src/sqlite3-adapter');
 var LevelDBAdapter = require('./../src/leveldb-adapter');
 var Transcoder = require('./../src/transcoder');
 var Validator = require('./../src/validator');
@@ -99,32 +98,34 @@ async.parallel([
     });
   },
 ], function (err) {
+  
+  http.createServer(function (req, res) {
+    var body = '';
+    req.on('data', function (chunk) { body += chunk; });
+    req.on('end', function () {
 
-  var gene = container.get('gene/model', {});
-  gene.put({
-    tag: 'root',
-    one2one: container.get('gene/model', { tag: '121' }),
-    many2one: container.get('gene/model', { tag: '*21' }),
-    one2oneMapped: container.get('child/model', { tag: '121m' }),
-    one2manyMapped: [
-      container.get('child-model', { tag: '12*m-1' }),
-      container.get('child-model', { tag: '12*m-2' }),
-      container.get('child-model', { tag: '12*m-3' }),
-      container.get('child-model', { tag: '12*m-4' })
-    ]
-  });
+      var entity = /gene/.test(req.url)
+        ? 'gene'
+        : 'child'
+        ;
 
-  var cycles = 10;
-  var start = +new Date();
-  async.timesSeries(cycles, function (n, done) {
-    gene.store.id = undefined;
-    gene.clean = false;
-    mapper.put('gene', gene, done);
-  }, function () {
-    var end = +new Date();
-    var diff = end - start;
-    var cycle = diff / cycles;
-    console.log('done in ' + diff + 'ms, cycle ' + cycle + 'ms');
-  });
+      if (body) body = JSON.parse(body); 
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      switch (req.method) {
+        case 'PUT': 
+          var gene = container.get('gene/model', {});
+          gene.put(body);
+          mapper.put(entity, gene, function (err, id) { 
+            console.log(id);
+            res.end(id);
+          });
+          break;
+        case 'GET':
+          break;
+        case 'DEL': 
+          break;
+      }
+    });
+  }).listen(7007);
 
 });

@@ -2,9 +2,7 @@ var async = require('async');
 var Model = require('./../src/model');
 var Mapper = require('./../src/mapper');
 var Container = require('./../src/container');
-var MemoryAdapter = require('./../src/memory-adapter');
-var SQLite3Adapter = require('./../src/sqlite3-adapter');
-var LevelDBAdapter = require('./../src/leveldb-adapter');
+var RestJsonAdapter = require('./../src/rest-json-adapter');
 var Transcoder = require('./../src/transcoder');
 var Validator = require('./../src/validator');
 var container = new Container();
@@ -72,18 +70,18 @@ container.put('child/model', function (values) {
 });
 
 container.put('gene/adapter', function () {
-  return new LevelDBAdapter({ 
+  return new RestJsonAdapter({ 
     entity: 'gene',
     container: container,
-    path: '/tmp/bench.ldb'
+    path: 'http://localhost:7007/gene'
   });
 }, true);
 
 container.put('child/adapter', function () {
-  return new LevelDBAdapter({ 
+  return new RestJsonAdapter({ 
     entity: 'child',
     container: container, 
-    path: '/tmp/bench.ldb'
+    path: 'http://localhost:7007/child'
   });
 }, true);
 
@@ -114,17 +112,6 @@ async.parallel([
     ]
   });
 
-  var cycles = 10;
-  var start = +new Date();
-  async.timesSeries(cycles, function (n, done) {
-    gene.store.id = undefined;
-    gene.clean = false;
-    mapper.put('gene', gene, done);
-  }, function () {
-    var end = +new Date();
-    var diff = end - start;
-    var cycle = diff / cycles;
-    console.log('done in ' + diff + 'ms, cycle ' + cycle + 'ms');
-  });
+  mapper.put('gene', gene);
 
 });

@@ -10,17 +10,9 @@ var Validator = require('./src/validator');
 var container = new Container();
 var mapper = new Mapper({ container: container });
 
-container.put('validator', function (params) { 
-  return new Validator(params); 
-});
-
-container.put('encoder', function (params) { 
-  return new Transcoder(params); 
-});
-
-container.put('decoder', function (params) { 
-  return new Transcoder(params); 
-});
+container.put('validator', function (params) { return new Validator(params); });
+container.put('encoder', function (params) { return new Transcoder(params); });
+container.put('decoder', function (params) { return new Transcoder(params); });
 
 container.put('gene/schema', {
   entity: 'gene',
