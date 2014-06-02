@@ -1,34 +1,40 @@
-var Model = require('./model');
-var sqlite3 = require('sqlite3').verbose();
 var async = require('async');
 var _ = require('lodash');
+var sqlite3 = require('sqlite3').verbose();
+var Adapter = require('./adapter');
 
 module.exports = SQLite3Adapter;
 
-SQLite3Adapter.encoders = {};
-SQLite3Adapter.encoders._default = function (v, o, d) {
+function SQLite3Adapter(config) {
+  Adapter.call(this, config);
+  this.templates = config.templates || this.templates;
+  this.typeMap   = config.typeMap   || this.typeMap;
+}
+
+SQLite3Adapter.prototype = Object.create(Adapter.prototype);
+
+SQLite3Adapter.prototype.encoders = Object.create(Adapter.prototype.encoders);
+SQLite3Adapter.prototype.encoders._default = function (v, o, d) {
   if (v === null || v === undefined) v = 'NULL';
   return d(null, '\'' + JSON.stringify(v).replace(/"/g, '\\"') + '\'');
 };
-SQLite3Adapter.encoders.date     =
-SQLite3Adapter.encoders.datetime =
-SQLite3Adapter.encoders.time     = function (v, o, d) {
-  return SQLite3Adapter.encoders._default(v.getTime(), o, d);
+SQLite3Adapter.prototype.encoders.date     =
+SQLite3Adapter.prototype.encoders.datetime =
+SQLite3Adapter.prototype.encoders.time     = function (v, o, d) {
+  return SQLite3Adapter.prototype.encoders._default(v.getTime(), o, d);
 };
 
-SQLite3Adapter.decoders = {};
-SQLite3Adapter.decoders._default = function (v, o, d) {
+SQLite3Adapter.prototype.decoders = Object.create(Adapter.prototype.decoders);
+SQLite3Adapter.prototype.decoders._default = function (v, o, d) {
   return d(null, typeof v == 'string' ? JSON.parse(v.replace(/\\/g, '')) : v);
 };
-SQLite3Adapter.decoders.date     =
-SQLite3Adapter.decoders.datetime =
-SQLite3Adapter.decoders.time     = function (v, o, d) {
+SQLite3Adapter.prototype.decoders.date     =
+SQLite3Adapter.prototype.decoders.datetime =
+SQLite3Adapter.prototype.decoders.time     = function (v, o, d) {
   return d(null, new Date(v));
 };
 
-SQLite3Adapter.validators = {};
-
-SQLite3Adapter.typeMap = {
+SQLite3Adapter.prototype.typeMap = {
   'entity': 'INTEGER',
   'object': 'CLOB',
   'array': 'CLOB',
@@ -41,7 +47,7 @@ SQLite3Adapter.typeMap = {
   'time': 'TIMESTAMP'
 };
 
-SQLite3Adapter.templates = {
+SQLite3Adapter.prototype.templates = {
   createTable: _.template([
     'CREATE TABLE IF NOT EXISTS <%= entity %> (',
       '<% var first = true; %>',
@@ -90,20 +96,6 @@ SQLite3Adapter.templates = {
     'DELETE FROM <%= entity %> WHERE id=<%= id %>'
   ].join(''))
 };
-
-function SQLite3Adapter(config) {
-  Model.call(this, this.config = config);
-  this.entity    = config.entity;
-  this.container = config.container;
-  this.templates = config.templates || SQLite3Adapter.templates;
-  this.typeMap   = config.typeMap || SQLite3Adapter.typeMap;
-  this.schema    = config.schema || this.container.get(this.entity + '/schema');
-  this.encoder   = this.container.get('encoder', SQLite3Adapter.encoders);
-  this.decoder   = this.container.get('decoder', SQLite3Adapter.decoders);
-  this.validator = this.container.get('validator', SQLite3Adapter.validators);
-}
-
-SQLite3Adapter.prototype = Object.create(Model.prototype);
 
 SQLite3Adapter.prototype.connect = function (callback) {
   this.client = new sqlite3.Database(this.config.path, callback);

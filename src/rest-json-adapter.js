@@ -1,37 +1,15 @@
 var async = require('async');
 var _ = require('lodash');
 var request = require('request');
-var Model = require('./model');
+var Adapter = require('./adapter');
 
 module.exports = RestJsonAdapter;
 
-RestJsonAdapter.encoders = {};
-RestJsonAdapter.encoders.date     =
-RestJsonAdapter.encoders.datetime =
-RestJsonAdapter.encoders.time     = function (v, o, d) {
-  return d(null, v.getTime());
-};
-
-RestJsonAdapter.decoders = {};
-RestJsonAdapter.decoders.date     =
-RestJsonAdapter.decoders.datetime =
-RestJsonAdapter.decoders.time     = function (v, o, d) {
-  return d(null, new Date(v));
-};
-
-RestJsonAdapter.validators = {};
-
 function RestJsonAdapter(config) {
-  Model.call(this, this.config = config);
-  this.container = config.container;
-  this.entity    = config.entity;
-  this.schema    = config.schema || this.container.get(this.entity + '/schema');
-  this.validator = this.container.get('validator', RestJsonAdapter.validators);
-  this.encoder   = this.container.get('encoder', RestJsonAdapter.encoders);
-  this.decoder   = this.container.get('decoder', RestJsonAdapter.decoders);
+  Adapter.call(this, config);
 }
 
-RestJsonAdapter.prototype = Object.create(Model.prototype);
+RestJsonAdapter.prototype = Object.create(Adapter.prototype);
 
 RestJsonAdapter.prototype.connect    =
 RestJsonAdapter.prototype.disconnect =
@@ -45,7 +23,6 @@ RestJsonAdapter.prototype._put = function (id, model, options, callback) {
 
   this.encoder.transcode(model, this.schema, function (err, values) {
     if (err) return callback(err);
-
     request.put(path + '/' + id, {
       json: values
     }, function (err, res, body) {

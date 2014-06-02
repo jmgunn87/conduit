@@ -119,12 +119,12 @@ describe('SQLite3Adapter', function () {
       });
     });
     it("short circuits if any encoding fails", function (done) {
-      SQLite3Adapter.encoders.bad = function (v, o, d) {
+      adapter.encoders.bad = function (v, o, d) {
         return d(new Error('encoding error'));
       };
       adapter.put('1', {}, function (err, entity) {
         assert.ok(err);
-        delete SQLite3Adapter.encoders.bad;
+        delete adapter.encoders.bad;
         done();
       }); 
     });

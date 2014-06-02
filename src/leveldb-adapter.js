@@ -1,43 +1,21 @@
 var async = require('async');
 var leveldb = require('levelup');
-var Model = require('./model');
+var Adapter = require('./adapter');
 
 module.exports = LevelDBAdapter;
 
-LevelDBAdapter.connectionPool = {};
-
-LevelDBAdapter.encoders = {};
-LevelDBAdapter.encoders.date     =
-LevelDBAdapter.encoders.datetime =
-LevelDBAdapter.encoders.time     = function (v, o, d) {
-  return d(null, v.getTime());
-};
-
-LevelDBAdapter.decoders = {};
-LevelDBAdapter.decoders.date     =
-LevelDBAdapter.decoders.datetime =
-LevelDBAdapter.decoders.time     = function (v, o, d) {
-  return d(null, new Date(v));
-};
-
-LevelDBAdapter.validators = {};
-
 function LevelDBAdapter(config) {
-  Model.call(this, this.config = config);
-  this.container = config.container;
-  this.entity    = config.entity;
-  this.schema    = config.schema || this.container.get(this.entity + '/schema');
-  this.validator = this.container.get('validator', LevelDBAdapter.validators);
-  this.encoder   = this.container.get('encoder', LevelDBAdapter.encoders);
-  this.decoder   = this.container.get('decoder', LevelDBAdapter.decoders);
+  Adapter.call(this, config);
 }
 
-LevelDBAdapter.prototype = Object.create(Model.prototype);
+LevelDBAdapter.prototype = Object.create(Adapter.prototype);
+
+LevelDBAdapter.prototype.connectionPool = {};
 
 LevelDBAdapter.prototype.connect = function (callback) {
   callback(null, this.client = 
-    LevelDBAdapter.connectionPool[this.config.path] = 
-    LevelDBAdapter.connectionPool[this.config.path] ||
+    this.connectionPool[this.config.path] = 
+    this.connectionPool[this.config.path] ||
     leveldb(this.config.path, { 
       valueEncoding: 'json' 
   }));
@@ -69,7 +47,7 @@ LevelDBAdapter.prototype._get = function (id, options, callback) {
   if (!id) {
     var query = options ? options.query : undefined;
     var range = options ? options.range : undefined;
-    var c = [];
+    var result = [];
 
     return this.client.createValueStream()
       .on("data", function (record) {
@@ -78,9 +56,9 @@ LevelDBAdapter.prototype._get = function (id, options, callback) {
             if (record[key] !== query[key]) return;
           }
         }
-        c.push(record);
+        result.push(record);
       }).on("end", function () {
-        async.map(c, function (item, done) { 
+        async.map(result, function (item, done) { 
           decoder.transcode(item, schema, done);
         }, callback);
       }); 
