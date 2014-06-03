@@ -37,11 +37,6 @@ Adapter.prototype.migrate    = function (callback) {
   return callback(null); 
 };
 
-Adapter.prototype._put = function (id, model, options, callback) {
-  this.store[id] = model;
-  callback(null, id);
-};
-
 Adapter.prototype._get = function (id, options, callback) { 
   if (!id) {
     var result = [];
@@ -49,8 +44,4 @@ Adapter.prototype._get = function (id, options, callback) {
     return callback(null, result);
   }
   callback(null, this.store[id]);
-};
-
-Adapter.prototype._del = function (id, options, callback) { 
-  callback(null, delete this.store[id]);
 };
