@@ -57,19 +57,18 @@ Mapper.prototype._del = function(entity, id, done) {
   var self = this;
   self.container
     .get(entity + '/adapter')
-    .get(id, function (e, data) {
+    .get(id, function (err, data) {
+      if (err) return done(err);
       var model = self.container.get(entity + '/model', data);
-      self.map(entity, model, function (schema, instance, data, done) {
-        instance.preUpdate(function (err) {
+        model.preUpdate(function (err) {
           if (err) return done(err);
           self.container
-            .get(schema.entity + '/adapter')
-            .del(instance.store.id || data.id, function (err) {
+            .get(entity + '/adapter')
+            .del(model.store.id, function (err) {
               if (err) return done(err);
-              instance.postUpdate(done);
+              model.postUpdate(done);
             });
         });
-      }, done);
     });
 };
 
