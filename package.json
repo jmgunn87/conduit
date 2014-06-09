@@ -7,8 +7,8 @@
     "lint": "jshint src/*.js index.js",
     "test": "npm run lint && istanbul cover _mocha ./test/**/*.js -- -R spec -t 10000",
     "test-browser": "npm run lint && istanbul cover _mocha ./test/**/*.js -- -R spec -t 10000",
-    "build-browser-dev": "browserify browser.js > conduit.js",
-    "build-browser": "browserify browser.js | uglifyjs -mc > conduit.min.js",
+    "build-browser-dev": "browserify index.js > conduit.js",
+    "build-browser": "npm run build-browser-dev && uglifyjs conduit.js -mc > conduit.min.js",
     "build": "npm run build-browser"
   },
   "author": "James Marshall-Gunn <jgmunn87@gmail.com>",
