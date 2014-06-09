@@ -3,9 +3,9 @@
   <body>
     <script type="text/javascript" src="../conduit.js"></script>
     <script>
-      var container = new Conduit();
+      var c = new Conduit();
 
-      container.put('model/schema', {
+      c.put('model/schema', {
         entity: 'model',
         fields: {
           name: { 
@@ -14,18 +14,16 @@
         }
       });
 
-      container.put('model/model', function (p) { 
-        p.schema = container.get('model/schema');
+      c.put('model/model', function (p) { 
         return new Conduit.Model(p); 
       });
 
-      container.put('model/adapter', function (p) { 
+      c.put('model/adapter', function (p) { 
         return new Conduit.Adapter(p); 
       }, true);
 
-
-      container.get('mapper')
-        .put('model', container.get('model/model', {
+      c.get('mapper')
+        .put('model', c.get('model/model', {
           name: 'amaze'
         }), function (err, id) {
           console.log(err, id);
