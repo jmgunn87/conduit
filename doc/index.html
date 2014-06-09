@@ -1,0 +1,80 @@
+<html>
+  <head></head>
+  <body>
+    <section>
+      <h1>Conduit</h1>
+      <nav>
+        <ul>
+          <li><a href="#introduction">Introduction</a>
+          <ul>
+            <li><a href="#hexagonal">Hexagonal/Onion architecure</a></li>
+            <li><a href="#properties">The properties design pattern</a></li>
+            <li><a href="#installation">Installation requirements</a></li>
+            <li><a href="#container">Setting up a container</a></li>
+            <li><a href="#quickStart">Quick start examples</a></li>
+          </ul>    
+          </li>
+          <li><a href="#">Models and schemas</a>
+          <ul>
+            <li><a href="#">Creating a model</a></li>
+            <li><a href="#">Model API</a></li>
+            <li><a href="#">Defining a schema</a></li>
+            <li><a href="#">Mapping relationships</a>
+            <ul>
+              <li><a href="#">one to one</a></li>
+              <li><a href="#">one to many</a></li>
+              <li><a href="#">many to many</a></li>
+              <li><a href="#">many to one</a></li>
+            </ul>
+            </li>
+            <li><a href="#">Inheritance mapping</a></li>
+            <li><a href="#">Schema specification</a></li>
+          </ul>
+          </li>
+          <li><a href="#">Adapters</a>
+          <ul>
+            <li><a href="#">Using the mapper</a></li>
+            <li><a href="#">Defining adapters</a></li>
+            <li><a href="#">Querying</a></li>
+            <li><a href="#">Migrations</a></li>
+            <li><a href="#">Transactions</a></li>
+            <li><a href="#">Caching and performace</a></li>
+            <li><a href="#">Consistency and synchronization</a></li>
+            <li><a href="#">Bundled adapters</a></li>
+          </ul>
+          </li>
+          <li><a href="#">Validation</a></li>
+          <li><a href="#">Transcoding</a>
+          <ul>
+            <li><a href="#">Encoding</a></li>
+            <li><a href="#">Decoding</a></li>
+          </ul>
+          </li>
+          <li><a href="#">Generators</a></li>
+          <li><a href="#">Testing</a></li>
+          <li><a href="#">Browser support</a></li>
+        </ul>
+      </nav>
+    </section>
+    <section>
+      <h1 id="introduction">Introduction</h1>
+      <p>Conduit is a data mapper. It handles your application state using a simple and universal interface. Conduit can map your domain objects to any compliant adapter giving you flexibility and freedom when making technical decisions in your application. Simply create an adapter for your target persistence layer(database, model to model, html forms) and you can map your objects to and from it.</p>
+      <h3 id="hexagonal">Hexagonal Architecture</h3>
+      <p>Conduit is inspired by hexagonal architecture and strives to follow best practices</p>
+      <h3 id="properties">The properties design pattern</h3>
+      <p>Most core objects in the conduit library use a pattern known as the properties pattern as an interface. This reduces clutter in the API and maximizes code reuse whilst decreasing the learning curve as there are simply less methods to have to remember and as a result using the library is intuitive and everything works as expected.</p>
+      <h3 id="installation">Installation and requirements</h3>
+      <p>conduit comes packaged as an NPM module and can be easily installed using the command <code>npm install conduit</code></p>
+      <p>If you are after using conduit for browser applications please see the section on browser support.</p>
+      <h3 id="container">Setting up a container</h3>
+      <p>To share code and manage dependencies conduit uses a very common design pattern called dependency inversion. This is represented by an object called a container. A container is the only hard dependency for all objects within the conduit library as it is needed in order to share code between mappers, adpater and models.</p>
+      <p>To setup the system you must use a Container. A Container is a synchronous subclass of Model. The container must have an adapter.</p>
+      <code>
+  var container = new Container();
+  container.put('adapter', function () {
+    return new Mapper({ container: container });
+  });
+      </code>
+    </section>
+  </body>
+</html>

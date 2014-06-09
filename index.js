@@ -7,6 +7,7 @@ var Adapter = require('./src/adapter');
 var LevelDBAdapter = require('./src/leveldb-adapter');
 var SQLite3Adapter = require('./src/sqlite3-adapter');
 var RestJsonAdapter = require('./src/rest-json-adapter');
+var ZMQAdapter = require('./src/zmq-adapter');
 
 module.exports = Conduit;
 
@@ -31,3 +32,4 @@ Conduit.Adapter = Adapter;
 Conduit.LevelDBAdapter = LevelDBAdapter;
 Conduit.SQLite3Adapter = SQLite3Adapter;
 Conduit.RestJsonAdapter = RestJsonAdapter;
+Conduit.ZMQAdapter = ZMQAdapter;
