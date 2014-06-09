@@ -13,11 +13,10 @@
           }
         }
       });
-
       c.put('model/model', function (p) { 
+        p.schema = c.get('model/schema');
         return new Conduit.Model(p); 
       });
-
       c.put('model/adapter', function (p) { 
         return new Conduit.Adapter(p); 
       }, true);

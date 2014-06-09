@@ -39,7 +39,6 @@ Adapter.prototype.migrate    = function (callback) {
 
 Adapter.prototype._put = function (id, value, options, callback) {
   this.store[id] = value;
-  console.log(arguments);
   return callback(null, id);
 };
 
