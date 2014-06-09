@@ -1,5 +1,5 @@
 {
-  "name": "conduit",
+  "name": "conduit-js",
   "version": "0.0.0",
   "main": "index.js",
   "scripts": {
@@ -30,6 +30,6 @@
     "request": "2.34.0",
     "sqlite3": "2.2.3",
     "yargs": "1.2.1",
-    "zmq": "^2.7.0"
+    "zmq": "2.7.0"
   }
 }
