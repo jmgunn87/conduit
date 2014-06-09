@@ -587,42 +587,6 @@
         }
       }
     },
-    "event-stream": {
-      "version": "3.1.2",
-      "from": "http://registry.npmjs.org/event-stream/-/event-stream-3.1.2.tgz",
-      "resolved": "http://registry.npmjs.org/event-stream/-/event-stream-3.1.2.tgz",
-      "dependencies": {
-        "through": {
-          "version": "2.3.4",
-          "from": "through@~2.3.1"
-        },
-        "duplexer": {
-          "version": "0.1.1",
-          "from": "duplexer@~0.1.1"
-        },
-        "from": {
-          "version": "0.1.3",
-          "from": "from@~0"
-        },
-        "map-stream": {
-          "version": "0.1.0",
-          "from": "map-stream@~0.1.0"
-        },
-        "pause-stream": {
-          "version": "0.0.11",
-          "from": "pause-stream@0.0.11",
-          "resolved": "http://registry.npmjs.org/pause-stream/-/pause-stream-0.0.11.tgz"
-        },
-        "split": {
-          "version": "0.2.10",
-          "from": "split@0.2"
-        },
-        "stream-combiner": {
-          "version": "0.0.4",
-          "from": "stream-combiner@~0.0.4"
-        }
-      }
-    },
     "istanbul": {
       "version": "0.2.7",
       "from": "istanbul@0.2.7",
@@ -1533,6 +1497,20 @@
         "minimist": {
           "version": "0.0.10",
           "from": "minimist@~0.0.1"
+        }
+      }
+    },
+    "zmq": {
+      "version": "2.7.0",
+      "from": "zmq@",
+      "dependencies": {
+        "nan": {
+          "version": "0.8.0",
+          "from": "nan@~0.8.0"
+        },
+        "bindings": {
+          "version": "1.1.1",
+          "from": "bindings@~1.1.1"
         }
       }
     }
