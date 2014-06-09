@@ -1,13 +1,12 @@
 {
   "name": "conduit",
   "version": "0.0.0",
-  "description": "the polyglot database",
   "main": "index.js",
   "scripts": {
     "lint": "jshint src/*.js index.js",
     "test": "npm run lint && istanbul cover _mocha ./test/**/*.js -- -R spec -t 10000",
     "test-browser": "npm run lint && istanbul cover _mocha ./test/**/*.js -- -R spec -t 10000",
-    "build-browser-dev": "browserify index.js > conduit.js",
+    "build-browser-dev": "browserify browser.js -s Conduit > conduit.js",
     "build-browser": "npm run build-browser-dev && uglifyjs conduit.js -mc > conduit.min.js",
     "build": "npm run build-browser"
   },

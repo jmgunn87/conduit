@@ -72,7 +72,11 @@ describe('Adapter', function () {
 
   describe("#put", function () {
     it("inserts an entity into its table", function (done) {
-      adapter.put(values.id, values, done);
+      adapter.put(values.id, values, function (err, id) {
+        if (err) throw err;
+        assert.equal(values.id, id);
+        done();
+      });
     });
   });
   

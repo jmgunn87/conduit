@@ -1,6 +1,36 @@
 <html>
   <head></head>
   <body>
-    <script type="text/javascript" src="bundle.js"></script>
+    <script type="text/javascript" src="../conduit.js"></script>
+    <script>
+      var container = new Conduit();
+
+      container.put('model/schema', {
+        entity: 'model',
+        fields: {
+          name: { 
+            type: 'text' 
+          }
+        }
+      });
+
+      container.put('model/model', function (p) { 
+        p.schema = container.get('model/schema');
+        return new Conduit.Model(p); 
+      });
+
+      container.put('model/adapter', function (p) { 
+        return new Conduit.Adapter(p); 
+      }, true);
+
+
+      container.get('mapper')
+        .put('model', container.get('model/model', {
+          name: 'amaze'
+        }), function (err, id) {
+          console.log(err, id);
+        });
+
+    </script>
   </body>
 </html>
