@@ -16,7 +16,7 @@ Mapper.prototype._put = function(entity, instance, options, done) {
   var self = this;
   this.map(entity, instance, function (schema, instance, data, done) {
     if (instance.clean) return done(null, data.id);
-    var isNew = !!data.id;
+    var isNew = data.id ? false : true;
     var adapter = self.container.get(schema.entity + '/adapter');
     data.id = data.id || uuid.v4();
 
