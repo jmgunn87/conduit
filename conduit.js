@@ -10413,16 +10413,23 @@ Mapper.prototype._put = function(entity, instance, options, done) {
   var self = this;
   this.map(entity, instance, function (schema, instance, data, done) {
     if (instance.clean) return done(null, data.id);
+    var isNew = !!data.id;
+    var adapter = self.container.get(schema.entity + '/adapter');
     data.id = data.id || uuid.v4();
-    instance.preUpdate(function (err) {
+
+    instance.hook([
+      isNew ? 'preCreate' : '', 
+      'preUpdate'
+    ], function (err) {
       if (err) return done(err);
-      self.container
-        .get(schema.entity + '/adapter')
-        .put(data.id, data, function (err, id) {
+        adapter.put(data.id, data, function (err, id) {
           if (err) return done(err);
           instance.store.id = id;
           instance.clean = true;
-          instance.postUpdate(function (err) {
+          instance.hook([
+            isNew ? 'preCreate' : '', 
+            'postUpdate'
+          ], function (err) {
             if (err) return done(err);
             done(err, id);
           });
@@ -10457,13 +10464,13 @@ Mapper.prototype._del = function(entity, id, done) {
     .get(id, function (err, data) {
       if (err) return done(err);
       var model = self.container.get(entity + '/model', data);
-      model.preUpdate(function (err) {
+      model.hook('preDelete', function (err) {
         if (err) return done(err);
         self.container
           .get(entity + '/adapter')
           .del(model.store.id, function (err) {
             if (err) return done(err);
-            model.postUpdate(done);
+            model.hook('postDelete', done);
           });
       });
     });
@@ -10530,7 +10537,7 @@ function Model(config) {
 
 Model.prototype = Object.create(EventEmitter.prototype);
 
-['put', 'get', 'del'].forEach(function (key) {
+['put', 'get', 'del', 'hook'].forEach(function (key) {
   Model.prototype[key] = function () {
     return this._dispatch(key, 
       Array.prototype.slice.call(arguments, 0)
@@ -10644,6 +10651,15 @@ Model.prototype._get = function (key, options, done) {
 Model.prototype._del = function (key, options, done) {
   this.clean = false;
   return done(null, delete this.store[key]);
+};
+
+Model.prototype._hook = function (key, options, done) {
+  if (this[key]) {
+    return _.isArray(this[key]) ? 
+      async.series(this[key], done) : 
+      this[key](done);
+  }
+  return done();
 };
 
 Model.prototype.preUpdate = 
