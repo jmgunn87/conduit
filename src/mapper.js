@@ -80,7 +80,7 @@ Mapper.prototype.map = function(entity, instance, method, done) {
 Mapper.prototype.mapField = function (field, value, method, done) {
   if (field.entity && _.isArray(value)) {
     this.mapCollection(field, value, method, done);
-  } else if (field.entity && value) {
+  } else if (field.entity && value instanceof Model) {
     return field.inversed ? done(null, value.store.id) :
       this.mapModel(field, value, method, done);
   } else {
@@ -102,10 +102,7 @@ Mapper.prototype.mapModel = function (field, model, method, done) {
   async.parallel(_.reduce(schema.fields || {}, function (result, field, key) {
     var reduction = field.mapped ? mapped : result;
     reduction[key] = function (callback) {
-      model.get(key, function (err, value) {
-        if (err) return callback(err);
-        self.mapField(field, value, method, callback);
-      });
+      self.mapField(field, model.store[key], method, callback);
     };
     return result;
   }, {}), function (err, result) {

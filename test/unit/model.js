@@ -51,14 +51,6 @@ describe("Model", function () {
   });
 
   describe("#put", function () {
-    it("throws if no callback is passed and an error occurs", function (done) {
-      model.putSync = function (v, o, d) { d(true); };
-      try {
-        model.put('sync');
-      } catch (e) {
-        done();
-      }
-    });
     it("it accepts undefined as a key", function (done) {
       model.put(undefined);
       model.put(undefined, undefined, done);
@@ -128,15 +120,6 @@ describe("Model", function () {
       });
       model.put("key4a", 8);
     });
-    it("delegates control to any defined property hooks (.put<field name>)", function (done) {
-      var seen = false;
-      model.putKey4a = function (v, o, done) { seen = true; done(); };
-      model.put({ "key4a": 8 }, {}, function (err) {
-        if (err) throw err;
-        assert.ok(seen);
-        done();
-      });
-    });
   });
   describe("#get", function () {
     it("it accepts undefined as a key", function (done) {
@@ -197,15 +180,6 @@ describe("Model", function () {
         done();
       });
       model.get("key4a");
-    });
-    it("delegates control to any defined property hooks (.get<field name>)", function (done) {
-      var seen = false;
-      model.getKey4a = function (o, done) { seen = true; done(); };
-      model.get("key4a", function (err) {
-        if (err) throw err;
-        assert.ok(seen);
-        done();
-      });
     });
     it("uses its mapper to lazy-load any FK references", function (done) {
       assert.equal(model.store.fk, 'someid');
@@ -277,15 +251,6 @@ describe("Model", function () {
         done();
       });
       model.del("key4a");
-    });
-    it("delegates control to any defined property hooks (.del<field name>)", function (done) {
-      var seen = false;
-      model.delKey4a = function (o, done) { seen = true; done(); };
-      model.del("key4a", function (err) {
-        if (err) throw err;
-        assert.ok(seen);
-        done();
-      });
     });
   });
   describe("#preUpdate", function () {

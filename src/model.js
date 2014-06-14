@@ -25,7 +25,6 @@ Model.prototype = Object.create(EventEmitter.prototype);
 });
 
 Model.prototype._dispatch = function (methodName, args) {
-  var camelKey;
   var sync = false;
   var keyType = typeof args[0];
   var offset = methodName === 'put' && 
@@ -49,16 +48,8 @@ Model.prototype._dispatch = function (methodName, args) {
 
   this.emit.apply(this, [methodName].concat(args));
 
-  if (args[0]) {
-    args[0] = String(args[0]);
-    camelKey = methodName + 
-      args[0].charAt(0).toUpperCase() + args[0].substr(1);    
-  }
-
   try {
-    return this[camelKey] ?
-      this[camelKey].apply(this, args.slice(1)) :
-      this['_' + methodName].apply(this, args);
+    return this['_' + methodName].apply(this, args);
   } catch (err) {
     return args[offset + 1](err);
   }
@@ -92,10 +83,12 @@ Model.prototype._put = function (key, value, options, done) {
     var mappedField = field.mapped;
     if (_.isArray(value)) {
       for(var i=0, l = value.length; i < l; ++i) {
-        value[i].store[mappedField] = this; 
-        value[i].clean = false;
+        if (value[i] instanceof Model) { 
+          value[i].store[mappedField] = this; 
+          value[i].clean = false;
+        }
       }
-    } else {
+    } else if (value instanceof Model) {
       value.store[mappedField] = this; 
       value.clean = false;
     }
