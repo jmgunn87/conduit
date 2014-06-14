@@ -16,16 +16,23 @@ Mapper.prototype._put = function(entity, instance, options, done) {
   var self = this;
   this.map(entity, instance, function (schema, instance, data, done) {
     if (instance.clean) return done(null, data.id);
+    var isNew = !!data.id;
+    var adapter = self.container.get(schema.entity + '/adapter');
     data.id = data.id || uuid.v4();
-    instance.hook('preUpdate', function (err) {
+
+    instance.hook([
+      isNew ? 'preCreate' : '', 
+      'preUpdate'
+    ], function (err) {
       if (err) return done(err);
-      self.container
-        .get(schema.entity + '/adapter')
-        .put(data.id, data, function (err, id) {
+        adapter.put(data.id, data, function (err, id) {
           if (err) return done(err);
           instance.store.id = id;
           instance.clean = true;
-          instance.hook('postUpdate', function (err) {
+          instance.hook([
+            isNew ? 'preCreate' : '', 
+            'postUpdate'
+          ], function (err) {
             if (err) return done(err);
             done(err, id);
           });
@@ -60,13 +67,13 @@ Mapper.prototype._del = function(entity, id, done) {
     .get(id, function (err, data) {
       if (err) return done(err);
       var model = self.container.get(entity + '/model', data);
-      model.hook('preUpdate', function (err) {
+      model.hook('preDelete', function (err) {
         if (err) return done(err);
         self.container
           .get(entity + '/adapter')
           .del(model.store.id, function (err) {
             if (err) return done(err);
-            model.hook('postUpdate', done);
+            model.hook('postDelete', done);
           });
       });
     });
