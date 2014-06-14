@@ -10413,7 +10413,7 @@ Mapper.prototype._put = function(entity, instance, options, done) {
   var self = this;
   this.map(entity, instance, function (schema, instance, data, done) {
     if (instance.clean) return done(null, data.id);
-    var isNew = !!data.id;
+    var isNew = data.id ? false : true;
     var adapter = self.container.get(schema.entity + '/adapter');
     data.id = data.id || uuid.v4();
 
@@ -10654,18 +10654,15 @@ Model.prototype._del = function (key, options, done) {
 };
 
 Model.prototype._hook = function (key, options, done) {
+  var self = this;
   if (this[key]) {
-    return _.isArray(this[key]) ? 
-      async.series(this[key], done) : 
-      this[key](done);
+    return !_.isArray(this[key]) ?
+      this[key](done) :
+      async.mapSeries(this[key], function (hook, callback) {
+        hook.call(self, callback);
+      }, done);
   }
   return done();
-};
-
-Model.prototype.preUpdate = 
-Model.prototype.postUpdate = 
-function (done) { 
-  done(); 
 };
 
 },{"async":2,"events":12,"lodash":14}],20:[function(_dereq_,module,exports){
