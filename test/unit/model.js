@@ -304,16 +304,34 @@ describe("Model", function () {
     });
   
   });
-  
-  describe("#preUpdate", function () {
-    it("by default is an async noop", function (done) {
-      model.preUpdate(done);
+
+  describe("#hook", function () {
+    it("triggers hooks by name", function (done) {
+      model.postUpdate = function (callback) { callback(); };
+      model.hook('postUpdate', done);
     });
-  });
-  
-  describe("#postUpdate", function () {
-    it("by default is an async noop", function (done) {
-      model.postUpdate(done);
+    
+    it("triggers arrays of hooks using async.series", function (done) {
+      model.postUpdate = [
+        function (callback) { callback(); },
+        function (callback) { callback(); }
+      ];
+      model.hook('postUpdate', done);
+    });
+    
+    it("allows triggering of multiple hooks", function (done) {
+      model.preUpdate = [
+        function (callback) { callback(); },
+        function (callback) { callback(); }
+      ];
+      model.postUpdate = [
+        function (callback) { callback(); },
+        function (callback) { callback(); }
+      ];
+      model.hook([
+        'preUpdate', 
+        'postUpdate'
+      ], done);
     });
   });
 

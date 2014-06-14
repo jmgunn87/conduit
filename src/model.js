@@ -16,7 +16,7 @@ function Model(config) {
 
 Model.prototype = Object.create(EventEmitter.prototype);
 
-['put', 'get', 'del'].forEach(function (key) {
+['put', 'get', 'del', 'hook'].forEach(function (key) {
   Model.prototype[key] = function () {
     return this._dispatch(key, 
       Array.prototype.slice.call(arguments, 0)
@@ -130,6 +130,15 @@ Model.prototype._get = function (key, options, done) {
 Model.prototype._del = function (key, options, done) {
   this.clean = false;
   return done(null, delete this.store[key]);
+};
+
+Model.prototype._hook = function (key, options, done) {
+  if (this[key]) {
+    return _.isArray(this[key]) ? 
+      async.series(this[key], done) : 
+      this[key](done);
+  }
+  return done();
 };
 
 Model.prototype.preUpdate = 
