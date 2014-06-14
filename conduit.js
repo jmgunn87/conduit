@@ -10457,15 +10457,15 @@ Mapper.prototype._del = function(entity, id, done) {
     .get(id, function (err, data) {
       if (err) return done(err);
       var model = self.container.get(entity + '/model', data);
-        model.preUpdate(function (err) {
-          if (err) return done(err);
-          self.container
-            .get(entity + '/adapter')
-            .del(model.store.id, function (err) {
-              if (err) return done(err);
-              model.postUpdate(done);
-            });
-        });
+      model.preUpdate(function (err) {
+        if (err) return done(err);
+        self.container
+          .get(entity + '/adapter')
+          .del(model.store.id, function (err) {
+            if (err) return done(err);
+            model.postUpdate(done);
+          });
+      });
     });
 };
 
@@ -10475,26 +10475,14 @@ Mapper.prototype.map = function(entity, instance, method, done) {
 };
 
 Mapper.prototype.mapField = function (field, value, method, done) {
-  if (field.entity && (_.isString(value) || _.isNumber(value))) {
-    this.mapForeignKey(field, value, method, done);
-  } else if (field.entity && _.isArray(value)) {
+  if (field.entity && _.isArray(value)) {
     this.mapCollection(field, value, method, done);
-  } else if (field.entity && value) {
+  } else if (field.entity && value instanceof Model) {
     return field.inversed ? done(null, value.store.id) :
       this.mapModel(field, value, method, done);
   } else {
     done(null, value);
   }
-};
-
-Mapper.prototype.mapForeignKey = function (field, value, method, done) {
-  var self = this;
-  this.container.get(field.entity + '/adapter')
-    .get(value, function (err, reference) {
-      if (err) return done(err, reference);
-      var model = self.container.get(field.entity + '/model', reference);
-      self.mapField(field, model, method, done);
-  });
 };
 
 Mapper.prototype.mapCollection = function (field, value, method, done) {
@@ -10511,10 +10499,7 @@ Mapper.prototype.mapModel = function (field, model, method, done) {
   async.parallel(_.reduce(schema.fields || {}, function (result, field, key) {
     var reduction = field.mapped ? mapped : result;
     reduction[key] = function (callback) {
-      model.get(key, function (err, value) {
-        if (err) return callback(err);
-        self.mapField(field, value, method, callback);
-      });
+      self.mapField(field, model.store[key], method, callback);
     };
     return result;
   }, {}), function (err, result) {
@@ -10554,7 +10539,6 @@ Model.prototype = Object.create(EventEmitter.prototype);
 });
 
 Model.prototype._dispatch = function (methodName, args) {
-  var camelKey;
   var sync = false;
   var keyType = typeof args[0];
   var offset = methodName === 'put' && 
@@ -10576,18 +10560,9 @@ Model.prototype._dispatch = function (methodName, args) {
       this._asyncBatch(methodName, args[0], args[offset + 1]);
   } 
 
-  this.emit.apply(this, [methodName].concat(args));
-
-  if (args[0]) {
-    args[0] = String(args[0]);
-    camelKey = methodName + 
-      args[0].charAt(0).toUpperCase() + args[0].substr(1);    
-  }
-
   try {
-    return this[camelKey] ?
-      this[camelKey].apply(this, args.slice(1)) :
-      this['_' + methodName].apply(this, args);
+    this.emit.apply(this, [methodName].concat(args));
+    return this['_' + methodName].apply(this, args);
   } catch (err) {
     return args[offset + 1](err);
   }
@@ -10621,10 +10596,12 @@ Model.prototype._put = function (key, value, options, done) {
     var mappedField = field.mapped;
     if (_.isArray(value)) {
       for(var i=0, l = value.length; i < l; ++i) {
-        value[i].store[mappedField] = this; 
-        value[i].clean = false;
+        if (value[i] instanceof Model) { 
+          value[i].store[mappedField] = this; 
+          value[i].clean = false;
+        }
       }
-    } else {
+    } else if (value instanceof Model) {
       value.store[mappedField] = this; 
       value.clean = false;
     }
@@ -10635,18 +10612,27 @@ Model.prototype._put = function (key, value, options, done) {
 };
 
 Model.prototype._get = function (key, options, done) {
+  var mapper = this.mapper;
   var value = this.store[key];
   var field = this.schema && this.schema.fields &&
     this.schema.fields[key] || {};
   
-  if (field.entity && this.mapper) {
+  if (field.entity && mapper) {
     if (typeof value === 'string') {
-      return this.mapper.get(field.entity, value, done);
+      return mapper.get(field.entity, value, done);
+    } else if (_.isArray(value)) {
+      return async.parallel(_.reduce(value, function (reduction, value) {
+        reduction.push(function (callback) {
+          if (value instanceof Model) return callback(null, value);
+          mapper.get(field.entity, value, callback);
+        });
+        return reduction;
+      }, []), done);
     } else if (!value && field.mapped) {
       options = Object(options);
       options.query = options.query || {};
       options.query[field.mapped] = this.store.id;
-      return this.mapper.get(field.entity, options, done);
+      return mapper.get(field.entity, options, done);
     }
   }
 
