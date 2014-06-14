@@ -60,15 +60,15 @@ Mapper.prototype._del = function(entity, id, done) {
     .get(id, function (err, data) {
       if (err) return done(err);
       var model = self.container.get(entity + '/model', data);
-        model.preUpdate(function (err) {
-          if (err) return done(err);
-          self.container
-            .get(entity + '/adapter')
-            .del(model.store.id, function (err) {
-              if (err) return done(err);
-              model.postUpdate(done);
-            });
-        });
+      model.preUpdate(function (err) {
+        if (err) return done(err);
+        self.container
+          .get(entity + '/adapter')
+          .del(model.store.id, function (err) {
+            if (err) return done(err);
+            model.postUpdate(done);
+          });
+      });
     });
 };
 
