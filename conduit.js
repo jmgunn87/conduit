@@ -10427,7 +10427,7 @@ Mapper.prototype._put = function(entity, instance, options, done) {
           instance.store.id = id;
           instance.clean = true;
           instance.hook([
-            isNew ? 'preCreate' : '', 
+            isNew ? 'postCreate' : '', 
             'postUpdate'
           ], function (err) {
             if (err) return done(err);
