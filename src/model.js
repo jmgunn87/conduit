@@ -46,9 +46,8 @@ Model.prototype._dispatch = function (methodName, args) {
       this._asyncBatch(methodName, args[0], args[offset + 1]);
   } 
 
-  this.emit.apply(this, [methodName].concat(args));
-
   try {
+    this.emit.apply(this, [methodName].concat(args));
     return this['_' + methodName].apply(this, args);
   } catch (err) {
     return args[offset + 1](err);
@@ -99,18 +98,27 @@ Model.prototype._put = function (key, value, options, done) {
 };
 
 Model.prototype._get = function (key, options, done) {
+  var mapper = this.mapper;
   var value = this.store[key];
   var field = this.schema && this.schema.fields &&
     this.schema.fields[key] || {};
   
-  if (field.entity && this.mapper) {
+  if (field.entity && mapper) {
     if (typeof value === 'string') {
-      return this.mapper.get(field.entity, value, done);
+      return mapper.get(field.entity, value, done);
+    } else if (_.isArray(value)) {
+      return async.parallel(_.reduce(value, function (reduction, value) {
+        reduction.push(function (callback) {
+          if (value instanceof Model) return callback(null, value);
+          mapper.get(field.entity, value, callback);
+        });
+        return reduction;
+      }, []), done);
     } else if (!value && field.mapped) {
       options = Object(options);
       options.query = options.query || {};
       options.query[field.mapped] = this.store.id;
-      return this.mapper.get(field.entity, options, done);
+      return mapper.get(field.entity, options, done);
     }
   }
 
