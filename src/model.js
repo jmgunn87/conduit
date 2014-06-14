@@ -133,16 +133,13 @@ Model.prototype._del = function (key, options, done) {
 };
 
 Model.prototype._hook = function (key, options, done) {
+  var self = this;
   if (this[key]) {
-    return _.isArray(this[key]) ? 
-      async.series(this[key], done) : 
-      this[key](done);
+    return !_.isArray(this[key]) ?
+      this[key](done) :
+      async.mapSeries(this[key], function (hook, callback) {
+        hook.call(self, callback);
+      }, done);
   }
   return done();
-};
-
-Model.prototype.preUpdate = 
-Model.prototype.postUpdate = 
-function (done) { 
-  done(); 
 };

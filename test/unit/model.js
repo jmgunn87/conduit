@@ -307,13 +307,16 @@ describe("Model", function () {
 
   describe("#hook", function () {
     it("triggers hooks by name", function (done) {
-      model.postUpdate = function (callback) { callback(); };
+      model.postUpdate = function (callback) {
+        assert.ok(this.store);
+        callback(); 
+      };
       model.hook('postUpdate', done);
     });
     
     it("triggers arrays of hooks using async.series", function (done) {
       model.postUpdate = [
-        function (callback) { callback(); },
+        function (callback) { assert.ok(this.store); callback(); },
         function (callback) { callback(); }
       ];
       model.hook('postUpdate', done);
