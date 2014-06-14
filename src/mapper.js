@@ -78,9 +78,7 @@ Mapper.prototype.map = function(entity, instance, method, done) {
 };
 
 Mapper.prototype.mapField = function (field, value, method, done) {
-  if (field.entity && (_.isString(value) || _.isNumber(value))) {
-    this.mapForeignKey(field, value, method, done);
-  } else if (field.entity && _.isArray(value)) {
+  if (field.entity && _.isArray(value)) {
     this.mapCollection(field, value, method, done);
   } else if (field.entity && value) {
     return field.inversed ? done(null, value.store.id) :
@@ -88,16 +86,6 @@ Mapper.prototype.mapField = function (field, value, method, done) {
   } else {
     done(null, value);
   }
-};
-
-Mapper.prototype.mapForeignKey = function (field, value, method, done) {
-  var self = this;
-  this.container.get(field.entity + '/adapter')
-    .get(value, function (err, reference) {
-      if (err) return done(err, reference);
-      var model = self.container.get(field.entity + '/model', reference);
-      self.mapField(field, model, method, done);
-  });
 };
 
 Mapper.prototype.mapCollection = function (field, value, method, done) {
