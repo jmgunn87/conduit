@@ -5,20 +5,7 @@ var Validator = _dereq_('./src/validator');
 var Transcoder = _dereq_('./src/transcoder');
 var Mapper = _dereq_('./src/mapper');
 var Adapter = _dereq_('./src/adapter');
-
-module.exports = Conduit;
-
-function Conduit(config) {
-  Container.call(this, config);
-  this.put('validator', function (params) { return new Validator(params); });
-  this.put('encoder', function (params) { return new Transcoder(params); });
-  this.put('decoder', function (params) { return new Transcoder(params); });
-  this.put('mapper', function (params) { 
-    return new Mapper(params); 
-  }, true);
-}
-
-Conduit.prototype = Object.create(Container.prototype);
+var Conduit = _dereq_('./src/conduit');
 
 Conduit.Model = Model;
 Conduit.Container = Container;
@@ -26,7 +13,9 @@ Conduit.Validator = Validator;
 Conduit.Transcoder = Transcoder;
 Conduit.Mapper = Mapper;
 Conduit.Adapter = Adapter;
-},{"./src/adapter":16,"./src/container":17,"./src/mapper":18,"./src/model":19,"./src/transcoder":20,"./src/validator":21}],2:[function(_dereq_,module,exports){
+
+module.exports = Conduit;
+},{"./src/adapter":16,"./src/conduit":17,"./src/container":18,"./src/mapper":19,"./src/model":20,"./src/transcoder":21,"./src/validator":22}],2:[function(_dereq_,module,exports){
 (function (process){
 /*jshint onevar: false, indent:4 */
 /*global setImmediate: false, setTimeout: false, console: false */
@@ -10370,7 +10359,42 @@ Adapter.prototype._get = function (id, options, callback) {
   callback(null, this.store[id]);
 };
 
-},{"./model":19,"async":2}],17:[function(_dereq_,module,exports){
+},{"./model":20,"async":2}],17:[function(_dereq_,module,exports){
+var Container = _dereq_('./container');
+var Validator = _dereq_('./validator');
+var Transcoder = _dereq_('./transcoder');
+var Mapper = _dereq_('./mapper');
+
+module.exports = Conduit;
+
+function Conduit(config) {
+  Container.call(this, config);
+  this.put('validator', function (params) { return new Validator(params); });
+  this.put('encoder', function (params) { return new Transcoder(params); });
+  this.put('decoder', function (params) { return new Transcoder(params); });
+  this.put('mapper', function (params) { 
+    return new Mapper(params); 
+  }, true);
+}
+
+Conduit.prototype = Object.create(Container.prototype);
+
+Conduit.prototype.registerSchema = function (key, value, done) {
+  return this.put(key + '/schema', value, null);
+};
+
+Conduit.prototype.registerModel = function (key, value, done) {
+  return this.put(key + '/model', typeof value === 'function' ? value : function (p) {
+    return new value(p);
+  }, done);
+};
+
+Conduit.prototype.registerAdapter = function (key, value, done) {
+  return this.put(key + '/adapter', typeof value === 'function' ? value : function (p) {
+    return new value(p);
+  }, true, done);
+};
+},{"./container":18,"./mapper":19,"./transcoder":21,"./validator":22}],18:[function(_dereq_,module,exports){
 var Model = _dereq_('./model');
 
 function Container(config) { Model.call(this, config); }
@@ -10394,7 +10418,7 @@ Container.prototype._get = function (key, options, done) {
 
 module.exports = Container;
 
-},{"./model":19}],18:[function(_dereq_,module,exports){
+},{"./model":20}],19:[function(_dereq_,module,exports){
 var async = _dereq_('async');
 var  _ = _dereq_('lodash');
 var uuid = _dereq_('node-uuid');
@@ -10518,7 +10542,7 @@ Mapper.prototype.mapModel = function (field, model, method, done) {
   });
 };
 
-},{"./model":19,"async":2,"lodash":14,"node-uuid":15}],19:[function(_dereq_,module,exports){
+},{"./model":20,"async":2,"lodash":14,"node-uuid":15}],20:[function(_dereq_,module,exports){
 var EventEmitter = _dereq_('events').EventEmitter;
 var async = _dereq_('async');
 var  _ = _dereq_('lodash');
@@ -10665,7 +10689,7 @@ Model.prototype._hook = function (key, options, done) {
   return done();
 };
 
-},{"async":2,"events":12,"lodash":14}],20:[function(_dereq_,module,exports){
+},{"async":2,"events":12,"lodash":14}],21:[function(_dereq_,module,exports){
 var async = _dereq_('async');
 var _ = _dereq_('lodash');
 var Model = _dereq_('./model');
@@ -10693,7 +10717,7 @@ Transcoder.prototype.transcode = function (value, schema, done) {
   });
 };
 
-},{"./model":19,"async":2,"lodash":14}],21:[function(_dereq_,module,exports){
+},{"./model":20,"async":2,"lodash":14}],22:[function(_dereq_,module,exports){
 var async = _dereq_('async');
 var _ = _dereq_('lodash');
 var Model = _dereq_('./model');
@@ -10722,6 +10746,6 @@ Validator.prototype.validate = function (value, schema, done) {
   });
 };
 
-},{"./model":19,"async":2,"lodash":14}]},{},[1])
+},{"./model":20,"async":2,"lodash":14}]},{},[1])
 (1)
 });

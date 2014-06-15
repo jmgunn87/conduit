@@ -8,20 +8,7 @@ var LevelDBAdapter = require('./src/leveldb-adapter');
 var SQLite3Adapter = require('./src/sqlite3-adapter');
 var RestJsonAdapter = require('./src/rest-json-adapter');
 var ZMQAdapter = require('./src/zmq-adapter');
-
-module.exports = Conduit;
-
-function Conduit(config) {
-  Container.call(this, config);
-  this.put('validator', function (params) { return new Validator(params); });
-  this.put('encoder', function (params) { return new Transcoder(params); });
-  this.put('decoder', function (params) { return new Transcoder(params); });
-  this.put('mapper', function (params) { 
-    return new Mapper(params); 
-  }, true);
-}
-
-Conduit.prototype = Object.create(Container.prototype);
+var Conduit = require('./src/conduit');
 
 Conduit.Model = Model;
 Conduit.Container = Container;
@@ -33,3 +20,5 @@ Conduit.LevelDBAdapter = LevelDBAdapter;
 Conduit.SQLite3Adapter = SQLite3Adapter;
 Conduit.RestJsonAdapter = RestJsonAdapter;
 Conduit.ZMQAdapter = ZMQAdapter;
+
+module.exports = Conduit;
