@@ -1,7 +1,8 @@
 {
   "name": "conduit-js",
-  "version": "0.0.7",
+  "version": "0.1.0",
   "main": "index.js",
+  "keywords": [ "orm" ],
   "scripts": {
     "lint": "jshint src/*.js index.js",
     "test": "npm run lint && istanbul cover _mocha ./test/**/*.js -- -R spec -t 10000",
