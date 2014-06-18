@@ -33,9 +33,8 @@
           <ul>
             <li><a href="#introduction">Introduction</a>
             <ul>
-              <li><a href="#installation">Installation requirements</a></li>
+              <li><a href="#installation">Installation</a></li>
               <li><a href="#container">Setting up conduit</a></li>
-              <li><a href="#quickStart">Quick start examples</a></li>
             </ul>    
             </li>
             <li><a href="#models_and_schemas">Models and schemas</a>
@@ -62,7 +61,7 @@
               <li><a href="#">Querying</a></li>
               <li><a href="#">Migrations</a></li>
               <li><a href="#">Transactions</a></li>
-              <li><a href="#">Caching and performace</a></li>
+              <li><a href="#">Caching and performance</a></li>
               <li><a href="#">Consistency and synchronization</a></li>
               <li><a href="#">Bundled adapters</a></li>
             </ul>
@@ -81,46 +80,41 @@
         </nav>
       </section>
       <section class="eight columns">
-        <h2 id="introduction">Introduction</h2>
-        <p>Conduit is a data mapper. It handles your application state using a simple and universal interface. Conduit can map your domain objects to any compliant adapter giving you flexibility and freedom when making technical decisions in your application. Simply create an adapter for your target persistence layer(database, model to model, html forms) and you can map your objects to and from it.</p>
-        <p>Conduit is inspired by hexagonal architecture and strives to follow best practices</p>
+        <h3 id="introduction">Introduction</h3>
+        <p>Conduit is a data mapper. It handles your application state using a simple and universal interface. Conduit can map your domain objects to any compliant adapter giving you flexibility and freedom when making technical decisions in your application. Simply create an adapter for your target persistence layer and you can map your objects to and from it.</p>
         <p>Most core objects in the conduit library use a pattern known as the properties pattern as an interface. This reduces clutter in the API and maximizes code reuse whilst decreasing the learning curve as there are simply less methods to have to remember and as a result using the library is intuitive and everything works as expected.</p>
-        <h4 id="installation">Installation and requirements</h4>
+        <h4 id="installation">Installation</h4>
         <p>conduit comes packaged as an NPM module and can be easily installed using the command 
-        <pre><code>npm install conduit --save</code></pre></p>
-        <p>If you are after using conduit for browser applications please see the section on browser support.</p>
+        <pre><code>npm install conduit-js --save</code></pre></p>
+        <p>For use in browsers conduit is also available via bower package manager</p>
+        <pre><code>bower install conduit-js --save</code></pre></p>
         <h4 id="container">Setting up conduit</h4>
-        <p>To share code and manage dependencies conduit uses a very common design pattern called dependency inversion. This is represented by an object called a container. A container is the only hard dependency for all objects within the conduit library as it is needed in order to share code between mappers, adpater and models.</p>
-        <p>To setup the system you must use a Container. A Container is a synchronous subclass of Model. The container must have an adapter.</p>
 <pre><code data-language="javascript">var Conduit = require('conduit-js');
 
 var container = new Conduit();
 </code></pre>
-        <h2 id="models_and_schemas">Models and Schemas</h2>
+        <h3 id="models_and_schemas">Models and Schemas</h3>
         <h4 id="creating_a_model">Creating a model</h4>
 <pre><code data-language="javascript">var Model = require('conduit-js').Model;
 
 module.exports = Account;
 
 function Account(config) {
-  config.schema = config.schema || Account.schema;
   Model.call(this, config);
 }
 
-Account.schema = {
-  entity: 'account',
-  id: 'id',
-  fields: {
-    id: { type: 'integer' },
-    email: { type: 'text' },
-    username: { type: 'username' },
-    password: { type: 'password' }
-  }
-};
-
 Account.prototype = Account.create(Model.prototype);
-
-Account.prototype.preCreate = function (callback) {
+</code></pre>
+        <h4 id="lifecycle_callbacks_hooks_and_events">Lifecycle callbacks, hooks and events</h4>
+        <p>
+        <strong>preUpdate (callback)</strong><br />
+        <strong>postUpdate (callback)</strong><br />
+        <strong>preCreate (callback)</strong><br />
+        <strong>postCreate (callback)</strong><br />
+        <strong>preDelete (callback)</strong><br />
+        <strong>postDelete (callback)</strong><br />
+        </p>
+<pre><code data-language="javascript">Account.prototype.preCreate = function (callback) {
   callback();  
 };
 
@@ -130,21 +124,7 @@ Account.prototype.preUpdate = [
   function (callback) { callback(); },
   function (callback) { callback(); }
 ];
-
-container.put('account/schema', Account.schema);
-container.put('account/model', function (values) {
-  values.mapper = mapper;
-  return new Account(values);
-});
 </code></pre>
-        <h4 id="lifecycle_callbacks_hooks_and_events">Lifecycle callbacks, hooks and events</h4>
-        <p>
-        <strong>preUpdate (callback)</strong><br />
-        <strong>postUpdate (callback)</strong><br />
-        <strong>put[FieldName] (value, options, callback)</strong><br />
-        <strong>get[FieldName] (value, options, callback)</strong><br />
-        <strong>del[FieldName] (value, options, callback)</strong><br />
-        </p>
         <h4 id="schema_specification">Schema specification</h4>
         <table>
           <tbody>
@@ -180,11 +160,11 @@ container.put('account/model', function (values) {
             </tr>
           </tbody>
         </table>
-        <h2 id="adapters">Adapters</h2>
-        <h2 id="validation">Validation</h2>
-        <h2 id="transcoding">Transcoding</h2>
-        <h2 id="generators">Generators</h2>
-        <h2 id="testing">Testing</h2>
+        <h3 id="adapters">Adapters</h3>
+        <h3 id="validation">Validation</h3>
+        <h3 id="transcoding">Transcoding</h3>
+        <h3 id="generators">Generators</h3>
+        <h3 id="testing">Testing</h3>
 <pre><code data-language="javascript">
 var account = container.get('account/model', {
   username : 'jmgunn87',
