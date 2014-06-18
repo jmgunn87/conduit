@@ -25,17 +25,17 @@ Mapper.prototype._put = function(entity, instance, options, done) {
       'preUpdate'
     ], function (err) {
       if (err) return done(err);
-        adapter.put(data.id, data, function (err, id) {
+      adapter.put(data.id, data, function (err, id) {
+        if (err) return done(err);
+        instance.store.id = id;
+        instance.clean = true;
+        instance.hook([
+          isNew ? 'postCreate' : '', 
+          'postUpdate'
+        ], function (err) {
           if (err) return done(err);
-          instance.store.id = id;
-          instance.clean = true;
-          instance.hook([
-            isNew ? 'postCreate' : '', 
-            'postUpdate'
-          ], function (err) {
-            if (err) return done(err);
-            done(err, id);
-          });
+          done(err, id);
+        });
       });
     });
   }, done);
