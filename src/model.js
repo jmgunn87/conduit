@@ -46,8 +46,12 @@ Model.prototype._dispatch = function (methodName, args) {
       this._asyncBatch(methodName, args[0], args[offset + 1]);
   } 
 
-  this.emit.apply(this, [methodName].concat(args));
-  return this['_' + methodName].apply(this, args);
+  try {
+    this.emit.apply(this, [methodName].concat(args));
+    return this['_' + methodName].apply(this, args);
+  } catch (err) {
+    return args[offset + 1](err);
+  }
 };
 
 Model.prototype._syncBatch = function (methodName, batch) {
