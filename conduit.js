@@ -1,18 +1,12 @@
 !function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Conduit=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-var Model = _dereq_('./src/model');
-var Container = _dereq_('./src/container');
-var Validator = _dereq_('./src/validator');
-var Transcoder = _dereq_('./src/transcoder');
-var Mapper = _dereq_('./src/mapper');
-var Adapter = _dereq_('./src/adapter');
 var Conduit = _dereq_('./src/conduit');
 
-Conduit.Model = Model;
-Conduit.Container = Container;
-Conduit.Validator = Validator;
-Conduit.Transcoder = Transcoder;
-Conduit.Mapper = Mapper;
-Conduit.Adapter = Adapter;
+Conduit.Model = _dereq_('./src/model');
+Conduit.Container = _dereq_('./src/container');
+Conduit.Validator = _dereq_('./src/validator');
+Conduit.Transcoder = _dereq_('./src/transcoder');
+Conduit.Mapper = _dereq_('./src/mapper');
+Conduit.Adapter = _dereq_('./src/adapter');
 
 module.exports = Conduit;
 },{"./src/adapter":16,"./src/conduit":17,"./src/container":18,"./src/mapper":19,"./src/model":20,"./src/transcoder":21,"./src/validator":22}],2:[function(_dereq_,module,exports){
@@ -10384,15 +10378,34 @@ Conduit.prototype.registerSchema = function (key, value, done) {
 };
 
 Conduit.prototype.registerModel = function (key, value, done) {
-  return this.put(key + '/model', typeof value === 'function' ? value : function (p) {
+  return this.put(key + '/model', function (p) {
     return new value(p);
   }, done);
 };
 
 Conduit.prototype.registerAdapter = function (key, value, done) {
-  return this.put(key + '/adapter', typeof value === 'function' ? value : function (p) {
+  return this.put(key + '/adapter', function (p) {
     return new value(p);
   }, true, done);
+};
+
+Conduit.prototype.assemble = function (done) {
+  var store = this.store;
+  for (var key in store) {
+    if (/\/schema$/.test(key) && store[key].inherits) {
+      this.applyInheritance(store[key]);
+    }
+  }
+  done();
+};
+
+Conduit.prototype.applyInheritance = function (schema) {
+  var parent = this.get(schema.inherits + '/schema');
+  if (parent.inherits) this.applyInheritance(parent);
+  for (var field in parent.fields) {
+    schema.fields[field] = 
+      schema.fields[field] || parent.fields[field];
+  }
 };
 },{"./container":18,"./mapper":19,"./transcoder":21,"./validator":22}],18:[function(_dereq_,module,exports){
 var Model = _dereq_('./model');
@@ -10446,17 +10459,17 @@ Mapper.prototype._put = function(entity, instance, options, done) {
       'preUpdate'
     ], function (err) {
       if (err) return done(err);
-        adapter.put(data.id, data, function (err, id) {
+      adapter.put(data.id, data, function (err, id) {
+        if (err) return done(err);
+        instance.store.id = id;
+        instance.clean = true;
+        instance.hook([
+          isNew ? 'postCreate' : '', 
+          'postUpdate'
+        ], function (err) {
           if (err) return done(err);
-          instance.store.id = id;
-          instance.clean = true;
-          instance.hook([
-            isNew ? 'postCreate' : '', 
-            'postUpdate'
-          ], function (err) {
-            if (err) return done(err);
-            done(err, id);
-          });
+          done(err, id);
+        });
       });
     });
   }, done);

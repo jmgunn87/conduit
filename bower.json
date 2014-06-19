@@ -1,7 +1,7 @@
 {
   "name": "conduit-js",
   "main": "index.js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "authors": [
     "James Marshall-Gunn <jmgunn87@gmail.com>"
   ],
