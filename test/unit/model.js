@@ -309,7 +309,6 @@ describe("Model", function () {
   describe("#setDirty", function () {
     it("sets any parent objects 'clean' variable to false", function () {
       model.clean = true;
-      console.log(model.store.child[0]);
       model.store.child[0].schema = schema;
       model.store.child[0].clean = true;
       model.store.child[0].setDirty();

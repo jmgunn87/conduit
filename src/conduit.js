@@ -1,3 +1,5 @@
+var async = require('async');
+var _ = require('lodash');
 var Container = require('./container');
 var Validator = require('./validator');
 var Transcoder = require('./transcoder');
@@ -34,13 +36,21 @@ Conduit.prototype.registerAdapter = function (key, value, done) {
 };
 
 Conduit.prototype.assemble = function (done) {
+  var self = this;
   var store = this.store;
-  for (var key in store) {
-    if (/\/schema$/.test(key) && store[key].inherits) {
-      this.applyInheritance(store[key]);
-    }
-  }
-  done();
+  async.parallel(_.reduce(store, function (result, value, key) {
+    result[key] = function (done) {
+      if (/\/schema$/.test(key) && value.inherits) {
+        self.applyInheritance(value);
+        done();
+      } else if (/\/adapter$/.test(key)) {
+        self.get(key).connect(done);
+      } else {
+        done();
+      }
+    };
+    return result;
+  }, {}), done);
 };
 
 Conduit.prototype.applyInheritance = function (schema) {
@@ -48,6 +58,7 @@ Conduit.prototype.applyInheritance = function (schema) {
   if (parent.inherits) this.applyInheritance(parent);
   for (var field in parent.fields) {
     schema.fields[field] = 
-      schema.fields[field] || parent.fields[field];
+      schema.fields[field] || 
+        parent.fields[field];
   }
 };

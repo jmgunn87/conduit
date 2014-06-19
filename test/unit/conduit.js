@@ -1,4 +1,5 @@
 var assert = require('assert');
+var Adapter = require('./../../src/adapter');
 var Conduit = require('./../../src/conduit');
 
 describe('Conduit', function () {
@@ -21,7 +22,7 @@ describe('Conduit', function () {
   
   describe("#adapter", function () {
     it("registers a adapter with the container", function () {
-      instance.registerAdapter('User', Object);
+      instance.registerAdapter('User', Adapter);
       assert.deepEqual(instance.get('User/adapter').container, instance);
     });
   });
