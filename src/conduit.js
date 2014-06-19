@@ -37,12 +37,17 @@ Conduit.prototype.assemble = function (done) {
   var store = this.store;
   for (var key in store) {
     if (/\/schema$/.test(key) && store[key].inherits) {
-      var child = store[key];
-      var parent = this.get(child.inherits + '/schema');
-      for (var field in parent.fields) {
-        child.fields[field] = child.fields[field] || parent.fields[field];
-      }
+      this.applyInheritance(store[key]);
     }
   }
   done();
+};
+
+Conduit.prototype.applyInheritance = function (schema) {
+  var parent = this.get(schema.inherits + '/schema');
+  if (parent.inherits) this.applyInheritance(parent);
+  for (var field in parent.fields) {
+    schema.fields[field] = 
+      schema.fields[field] || parent.fields[field];
+  }
 };

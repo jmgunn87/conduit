@@ -28,12 +28,6 @@ describe('Conduit', function () {
 
   describe("#assemble", function () {
     it("performs any inheritance specified in a schema", function (done) {
-      instance.registerSchema('Parent', {
-        entity: 'Parent',
-        fields: {
-          parent: { type: 'text' }
-        }
-      });
       instance.registerSchema('Child', {
         entity: 'Child',
         inherits: 'Parent',
@@ -41,14 +35,33 @@ describe('Conduit', function () {
           child: { type: 'text' }
         }
       });
+      instance.registerSchema('Parent', {
+        entity: 'Parent',
+        inherits: 'Grandparent',
+        fields: {
+          parent: { type: 'text' }
+        }
+      });
+      instance.registerSchema('Grandparent', {
+        entity: 'Grandparent',
+        fields: {
+          grandparent: { type: 'text' }
+        }
+      });
       instance.assemble(function (err) {
         if (err) throw err;
         var child = instance.get('Child/schema');
+        assert.ok(child.fields.grandparent);
         assert.ok(child.fields.child);
         assert.ok(child.fields.parent);
         var parent = instance.get('Parent/schema');
+        assert.ok(parent.fields.grandparent);
         assert.ok(parent.fields.parent);
         assert.ok(!parent.fields.child);
+        var grandparent = instance.get('Grandparent/schema');
+        assert.ok(grandparent.fields.grandparent);
+        assert.ok(!grandparent.fields.parent);
+        assert.ok(!grandparent.fields.child);
         done();
       });
     });
