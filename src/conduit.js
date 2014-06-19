@@ -22,13 +22,13 @@ Conduit.prototype.registerSchema = function (key, value, done) {
 };
 
 Conduit.prototype.registerModel = function (key, value, done) {
-  return this.put(key + '/model', typeof value === 'function' ? value : function (p) {
+  return this.put(key + '/model', function (p) {
     return new value(p);
   }, done);
 };
 
 Conduit.prototype.registerAdapter = function (key, value, done) {
-  return this.put(key + '/adapter', typeof value === 'function' ? value : function (p) {
+  return this.put(key + '/adapter', function (p) {
     return new value(p);
   }, true, done);
 };
