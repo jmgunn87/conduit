@@ -32,3 +32,17 @@ Conduit.prototype.registerAdapter = function (key, value, done) {
     return new value(p);
   }, true, done);
 };
+
+Conduit.prototype.assemble = function (done) {
+  var store = this.store;
+  for (var key in store) {
+    if (/\/schema$/.test(key) && store[key].inherits) {
+      var child = store[key];
+      var parent = this.get(child.inherits + '/schema');
+      for (var field in parent.fields) {
+        child.fields[field] = child.fields[field] || parent.fields[field];
+      }
+    }
+  }
+  done();
+};
