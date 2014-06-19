@@ -10,32 +10,33 @@ describe("Model", function () {
   var parent = new Model({
     parentKey: 222
   });
+  var schema = {
+    entity: 'model',
+    fields: {
+      parent: {
+        entity: 'model',
+        inversed: 'child' 
+      }, 
+      child: {
+        entity: 'model',
+        mapped: 'parent' 
+      },
+      fk: {
+        entity: 'model'
+      },
+      fka: {
+        entity: 'model',
+        mapped: 'blah' 
+      }
+    }
+  }; 
   
   before(function () {
     model = new Model({
       mapper: mapper,
       parent: parent,
       fk: 'someid',
-      schema: {
-        entity: 'model',
-        fields: {
-          parent: {
-            entity: 'model',
-            inversed: 'child' 
-          }, 
-          child: {
-            entity: 'model',
-            mapped: 'parent' 
-          },
-          fk: {
-            entity: 'model'
-          },
-          fka: {
-            entity: 'model',
-            mapped: 'blah' 
-          }
-        }
-      }
+      schema: schema
     });
   });
 
@@ -303,6 +304,17 @@ describe("Model", function () {
       model.del("key4a");
     });
   
+  });
+
+  describe("#setDirty", function () {
+    it("sets any parent objects 'clean' variable to false", function () {
+      model.clean = true;
+      console.log(model.store.child[0]);
+      model.store.child[0].schema = schema;
+      model.store.child[0].clean = true;
+      model.store.child[0].setDirty();
+      assert.ok(!model.clean);
+    });
   });
 
   describe("#hook", function () {

@@ -21,8 +21,7 @@ Mapper.prototype._put = function(entity, instance, options, done) {
     data.id = data.id || uuid.v4();
 
     instance.hook([
-      isNew ? 'preCreate' : '', 
-      'preUpdate'
+      isNew ? 'preCreate' : '', 'preUpdate'
     ], function (err) {
       if (err) return done(err);
       adapter.put(data.id, data, function (err, id) {
@@ -30,8 +29,7 @@ Mapper.prototype._put = function(entity, instance, options, done) {
         instance.store.id = id;
         instance.clean = true;
         instance.hook([
-          isNew ? 'postCreate' : '', 
-          'postUpdate'
+          isNew ? 'postCreate' : '', 'postUpdate'
         ], function (err) {
           if (err) return done(err);
           done(err, id);

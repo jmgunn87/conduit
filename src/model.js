@@ -84,16 +84,16 @@ Model.prototype._put = function (key, value, options, done) {
       for(var i=0, l = value.length; i < l; ++i) {
         if (value[i] instanceof Model) { 
           value[i].store[mappedField] = this; 
-          value[i].clean = false;
+          value[i].setDirty();
         }
       }
     } else if (value instanceof Model) {
       value.store[mappedField] = this; 
-      value.clean = false;
+      value.setDirty();
     }
   }
 
-  this.clean = false;
+  this.setDirty();
   return done(null, this.store[key] = value); 
 };
 
@@ -128,8 +128,20 @@ Model.prototype._get = function (key, options, done) {
 };
 
 Model.prototype._del = function (key, options, done) {
-  this.clean = false;
+  this.setDirty();
   return done(null, delete this.store[key]);
+};
+
+Model.prototype.setDirty = function () {
+  this.clean = false;
+  if (this.schema) {
+    for (var key in this.schema.fields) {
+      if(this.schema.fields[key].inversed &&
+         this.store[key] instanceof Model) {
+        this.store[key].setDirty();
+      }
+    }
+  }
 };
 
 Model.prototype._hook = function (key, options, done) {
