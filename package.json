@@ -2,7 +2,9 @@
   "name": "conduit-js",
   "version": "0.1.1",
   "main": "index.js",
-  "keywords": [ "orm" ],
+  "keywords": [
+    "orm"
+  ],
   "scripts": {
     "lint": "jshint src/*.js index.js",
     "test": "npm run lint && istanbul cover _mocha ./test/**/*.js -- -R spec -t 10000",
@@ -27,6 +29,7 @@
     "leveldown": "0.10.2",
     "levelup": "0.18.2",
     "lodash": "2.4.1",
+    "mongodb": "1.4.7",
     "node-uuid": "1.4.1",
     "request": "2.34.0",
     "sqlite3": "2.2.3",

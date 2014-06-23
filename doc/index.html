@@ -21,6 +21,7 @@
         word-wrap: break-word;
         margin-bottom: 15px;
       }
+      a { color: #444444 }
     </style>
     <script type="text/javascript" src="vendor/rainbow/js/rainbow.min.js"></script>
     <script type="text/javascript" src="vendor/rainbow/js/language/javascript.js"></script>
@@ -31,60 +32,64 @@
         <h2>Conduit</h2>
         <nav>
           <ul>
-            <li><a href="#introduction">Introduction</a>
-            <ul>
-              <li><a href="#installation">Installation</a></li>
-              <li><a href="#container">Setting up conduit</a></li>
-            </ul>    
-            </li>
-            <li><a href="#models_and_schemas">Models and schemas</a>
-            <ul>
-              <li><a href="#creating_a_model">Creating a model</a></li>
-              <li><a href="#lifecycle_callbacks_hooks_and_events">Lifecycle callbacks, hooks and events</a></li>
-              <li><a href="#">Defining a schema</a></li>
-              <li><a href="#">Mapping relationships</a>
+            <li>
+              <a href="#introduction"><strong>Introduction</strong></a>
               <ul>
-                <li><a href="#">one to one</a></li>
-                <li><a href="#">one to many</a></li>
-                <li><a href="#">many to many</a></li>
-                <li><a href="#">many to one</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#container">Setting up conduit</a></li>
+              </ul>    
+            </li>
+            <li>
+              <a href="#models_and_schemas"><strong>Models and schemas</strong></a>
+              <ul>
+                <li><a href="#creating_a_model">Creating a model</a></li>
+                <li><a href="#lifecycle_hooks">Lifecycle hooks</a></li>
+                <li><a href="#">Defining a schema</a></li>
+                <li><a href="#">Mapping relationships</a>
+                <ul>
+                  <li><a href="#">one to one</a></li>
+                  <li><a href="#">one to many</a></li>
+                  <li><a href="#">many to many</a></li>
+                  <li><a href="#">many to one</a></li>
+                </ul>
+                </li>
+                <li><a href="#">Inheritance mapping</a></li>
+                <li><a href="#schema_specification">Schema specification</a></li>
               </ul>
-              </li>
-              <li><a href="#">Inheritance mapping</a></li>
-              <li><a href="#schema_specification">Schema specification</a></li>
-            </ul>
             </li>
-            <li><a href="#adapters">Adapters</a>
-            <ul>
-              <li><a href="#">Using the mapper</a></li>
-              <li><a href="#">Defining adapters</a></li>
-              <li><a href="#">Querying</a></li>
-              <li><a href="#">Migrations</a></li>
-              <li><a href="#">Transactions</a></li>
-              <li><a href="#">Caching and performance</a></li>
-              <li><a href="#">Consistency and synchronization</a></li>
-              <li><a href="#">Bundled adapters</a></li>
-            </ul>
+            <li>
+              <a href="#adapters"><strong>Adapters</strong></a>
+              <ul>
+                <li><a href="#">Using the mapper</a></li>
+                <li><a href="#">Defining adapters</a></li>
+                <li><a href="#">Querying</a></li>
+                <li><a href="#">Migrations</a></li>
+                <li><a href="#">Transactions</a></li>
+                <li><a href="#">Caching and performance</a></li>
+                <li><a href="#">Consistency and synchronization</a></li>
+                <li><a href="#">Bundled adapters</a></li>
+              </ul>
             </li>
-            <li><a href="#validation">Validation</a></li>
-            <li><a href="#">Transcoding</a>
-            <ul>
-              <li><a href="#">Encoding</a></li>
-              <li><a href="#">Decoding</a></li>
-            </ul>
+            <li><a href="#validation"><strong>Validation</strong></a></li>
+            <li>
+              <a href="#"><strong>Transcoding</strong></a>
+              <ul>
+                <li><a href="#">Encoding</a></li>
+                <li><a href="#">Decoding</a></li>
+              </ul>
             </li>
-            <li><a href="#">Generators</a></li>
-            <li><a href="#">Testing</a></li>
-            <li><a href="#">Browser support</a></li>
+            <li><a href="#"><strong>Generators</strong></a></li>
+            <li><a href="#"><strong>Testing</strong></a></li>
+            <li><a href="#"><strong>Browser support</strong></a></li>
           </ul>
         </nav>
       </section>
       <section class="eight columns">
         <h3 id="introduction">Introduction</h3>
-        <p>Conduit is a data mapper. It handles your application state using a simple and universal interface. Conduit can map your domain objects to any compliant adapter giving you flexibility and freedom when making technical decisions in your application. Simply create an adapter for your target persistence layer and you can map your objects to and from it.</p>
-        <p>Most core objects in the conduit library use a pattern known as the properties pattern as an interface. This reduces clutter in the API and maximizes code reuse whilst decreasing the learning curve as there are simply less methods to have to remember and as a result using the library is intuitive and everything works as expected.</p>
+        <p>Conduit is a data mapper. Conduit can map your domain objects to any compliant adapter giving you flexibility and freedom when making technical decisions in your application. Simply create an adapter for your target persistence layer and you can map your objects to and from it.</p>
+        <p>Most core objects in the conduit library use the properties pattern as an interface. This reduces clutter in the API and maximizes code reuse whilst decreasing the learning curve as there are simply less methods to have to remember and as a result using the library is intuitive and everything works as expected.</p>
         <h4 id="installation">Installation</h4>
-        <p>conduit comes packaged as an NPM module and can be easily installed using the command 
+        <p>conduit comes packaged as an npm module 
         <pre><code>npm install conduit-js --save</code></pre></p>
         <p>For use in browsers conduit is also available via bower package manager</p>
         <pre><code>bower install conduit-js --save</code></pre></p>
@@ -105,15 +110,15 @@ function Account(config) {
 
 Account.prototype = Account.create(Model.prototype);
 </code></pre>
-        <h4 id="lifecycle_callbacks_hooks_and_events">Lifecycle callbacks, hooks and events</h4>
-        <p>
-        <strong>preUpdate (callback)</strong><br />
-        <strong>postUpdate (callback)</strong><br />
-        <strong>preCreate (callback)</strong><br />
-        <strong>postCreate (callback)</strong><br />
-        <strong>preDelete (callback)</strong><br />
-        <strong>postDelete (callback)</strong><br />
-        </p>
+        <h4 id="lifecycle_hooks">Lifecycle hooks</h4>
+        <dl>
+          <dt>preUpdate (callback)</dt>
+          <dt>postUpdate (callback)</dt>
+          <dt>preCreate (callback)</dt>
+          <dt>postCreate (callback)</dt>
+          <dt>preDelete (callback)</dt>
+          <dt>postDelete (callback)</dt>
+        </dl>
 <pre><code data-language="javascript">Account.prototype.preCreate = function (callback) {
   callback();  
 };
@@ -126,143 +131,23 @@ Account.prototype.preUpdate = [
 ];
 </code></pre>
         <h4 id="schema_specification">Schema specification</h4>
-        <table>
-          <tbody>
-            <tr>
-              <td>entity</td><td>the value of this field should be that of a defined <strong>Model</strong> subclass</td>
-            </tr>
-            <tr>
-              <td>object</td><td>a javascript <strong>Object</strong> type</td>
-            </tr>
-            <tr>
-              <td>array</td><td>a javascript <strong>Array</strong> type</td>
-            </tr>
-            <tr>
-              <td>string</td><td>a javascript <strong>String</strong> type</td>
-            </tr>
-            <tr>
-              <td>boolean</td><td>a javascript <strong>Boolean</strong> type</td>
-            </tr>
-            <tr>
-              <td>float</td><td>a javascript <strong>Number</strong> type</td>
-            </tr>
-            <tr>
-              <td>integer</td><td>a javascript <strong>Number</strong> type</td>
-            </tr>
-            <tr>
-              <td>datetime</td><td>javascript <strong>Date</strong> type</td>
-            </tr>
-            <tr>
-              <td>date</td><td>javascript <strong>Date</strong> type</td>
-            </tr>
-            <tr>
-              <td>time</td><td>javascript <strong>Date</strong> type</td>
-            </tr>
-          </tbody>
-        </table>
+        <dl>
+          <dt>entity</dt><dd>the value of this field should be that of a defined <strong>Model</strong> subclass</dd>
+          <dt>object</dt><dd>a javascript <strong>Object</strong> type</dd>
+          <dt>array</dt><dd>a javascript <strong>Array</strong> type</dd>
+          <dt>string</dt><dd>a javascript <strong>String</strong> type</dd>
+          <dt>boolean</dt><dd>a javascript <strong>Boolean</strong> type</dd>
+          <dt>float</dt><dd>a javascript <strong>Number</strong> type</dd>
+          <dt>integer</dt><dd>a javascript <strong>Number</strong> type</dd>
+          <dt>datetime</dt><dd>javascript <strong>Date</strong> type</dd>
+          <dt>date</dt><dd>javascript <strong>Date</strong> type</dd>
+          <dt>time</dt><dd>javascript <strong>Date</strong> type</dd>
+        </dl>
         <h3 id="adapters">Adapters</h3>
         <h3 id="validation">Validation</h3>
         <h3 id="transcoding">Transcoding</h3>
         <h3 id="generators">Generators</h3>
         <h3 id="testing">Testing</h3>
-<pre><code data-language="javascript">
-var account = container.get('account/model', {
-  username : 'jmgunn87',
-  password : 'somethingSecr3t'
-});
-
-container.get('adapter').put('account', account, function (e, id) {
-  // 'id' will be the inserted models id
-});
-</code></pre>
-<pre><code data-language="javascript">
-var accounts = [container.get('account/model', {
-  username : 'jmgunn87',
-  password : 'somethingSecr3t'
-}), container.get('account/model', {
-  username : 'gmjunn787',
-  password : 'Secr3t'
-})];
-
-container.get('adapter').put('account', accounts, function (e, ids) {
-  // 'ids' will be an array of inserted model id's
-});
-</code></pre>
-<pre><code data-language="javascript">
-var accounts = [container.get('account/model', {
-  username : 'jmgunn87',
-  password : 'somethingSecr3t'
-}), container.get('account/model', {
-  username : 'gmjunn787',
-  password : 'Secr3t'
-})];
-
-var posts = [container.get('post/model', {
-  title   : 'Post #1',
-  date    : new Date(),
-  content : '<h1>HI</h1>'
-}), container.get('post/model', {
-  title   : 'Post #2',
-  date    : new Date(),
-  content : '<p>hello world</p>'
-})];
-
-container.get('adapter').put({
-  'account' : accounts,
-  'posts'   : posts
-}, function (e, ids) {
-  // 'ids' will be an object keyed by entity name of inserted model id's
-});
-</code></pre>
-<pre><code data-language="javascript">
-container.get('adapter').get('account', '100', function (e, result) {
-  // 'result' will contain query results as single 'account' models
-});
-</code></pre>
-<pre><code data-language="javascript">
-container.get('adapter').get('account', {
-  query  : { username: 'jmgunn87' },
-  fields : ['id', 'username'],
-  offset : 10, 
-  limit  : 10
-}, function (e, results) {
-  // 'results' will contain query results as an array of 'account' models
-});
-</code></pre>
-<pre><code data-language="javascript">
-container.get('adapter').get({
-  'account' : '100',
-  'order'   : '101',
-  'posts'   : {
-    query : { 
-      title: 'Example' 
-    }
-  }
-}, function (e, result) {
-  // 'result' will contain query results as an object keyed by entity name
-});
-</code></pre>
-<pre><code data-language="javascript">
-container.get('adapter').del('account', '100', function (e, result) {
-  // 'result' will contain query results as single 'account' models
-});
-</code></pre>
-<pre><code data-language="javascript">
-container.get('adapter').del('account', {
-  query  : { username: 'jmgunn87' }
-}, function (e) {});
-</code></pre>
-<pre><code data-language="javascript">
-container.del('adapter').get({
-  'account' : '100',
-  'order'   : '101',
-  'posts'   : {
-    query: { 
-      title: 'Example' 
-    }
-  }
-}, function (e) {});
-</code></pre>
       </section>
     </div>
   </body>
