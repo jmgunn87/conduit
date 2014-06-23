@@ -10354,6 +10354,8 @@ Adapter.prototype._get = function (id, options, callback) {
 };
 
 },{"./model":20,"async":2}],17:[function(_dereq_,module,exports){
+var async = _dereq_('async');
+var _ = _dereq_('lodash');
 var Container = _dereq_('./container');
 var Validator = _dereq_('./validator');
 var Transcoder = _dereq_('./transcoder');
@@ -10390,13 +10392,21 @@ Conduit.prototype.registerAdapter = function (key, value, done) {
 };
 
 Conduit.prototype.assemble = function (done) {
+  var self = this;
   var store = this.store;
-  for (var key in store) {
-    if (/\/schema$/.test(key) && store[key].inherits) {
-      this.applyInheritance(store[key]);
-    }
-  }
-  done();
+  async.parallel(_.reduce(store, function (result, value, key) {
+    result[key] = function (done) {
+      if (/\/schema$/.test(key) && value.inherits) {
+        self.applyInheritance(value);
+        done();
+      } else if (/\/adapter$/.test(key)) {
+        self.get(key).connect(done);
+      } else {
+        done();
+      }
+    };
+    return result;
+  }, {}), done);
 };
 
 Conduit.prototype.applyInheritance = function (schema) {
@@ -10404,10 +10414,11 @@ Conduit.prototype.applyInheritance = function (schema) {
   if (parent.inherits) this.applyInheritance(parent);
   for (var field in parent.fields) {
     schema.fields[field] = 
-      schema.fields[field] || parent.fields[field];
+      schema.fields[field] || 
+        parent.fields[field];
   }
 };
-},{"./container":18,"./mapper":19,"./transcoder":21,"./validator":22}],18:[function(_dereq_,module,exports){
+},{"./container":18,"./mapper":19,"./transcoder":21,"./validator":22,"async":2,"lodash":14}],18:[function(_dereq_,module,exports){
 var Model = _dereq_('./model');
 
 function Container(config) { Model.call(this, config); }
@@ -10455,8 +10466,7 @@ Mapper.prototype._put = function(entity, instance, options, done) {
     data.id = data.id || uuid.v4();
 
     instance.hook([
-      isNew ? 'preCreate' : '', 
-      'preUpdate'
+      isNew ? 'preCreate' : '', 'preUpdate'
     ], function (err) {
       if (err) return done(err);
       adapter.put(data.id, data, function (err, id) {
@@ -10464,8 +10474,7 @@ Mapper.prototype._put = function(entity, instance, options, done) {
         instance.store.id = id;
         instance.clean = true;
         instance.hook([
-          isNew ? 'postCreate' : '', 
-          'postUpdate'
+          isNew ? 'postCreate' : '', 'postUpdate'
         ], function (err) {
           if (err) return done(err);
           done(err, id);
@@ -10642,16 +10651,16 @@ Model.prototype._put = function (key, value, options, done) {
       for(var i=0, l = value.length; i < l; ++i) {
         if (value[i] instanceof Model) { 
           value[i].store[mappedField] = this; 
-          value[i].clean = false;
+          value[i].setDirty();
         }
       }
     } else if (value instanceof Model) {
       value.store[mappedField] = this; 
-      value.clean = false;
+      value.setDirty();
     }
   }
 
-  this.clean = false;
+  this.setDirty();
   return done(null, this.store[key] = value); 
 };
 
@@ -10686,8 +10695,20 @@ Model.prototype._get = function (key, options, done) {
 };
 
 Model.prototype._del = function (key, options, done) {
-  this.clean = false;
+  this.setDirty();
   return done(null, delete this.store[key]);
+};
+
+Model.prototype.setDirty = function () {
+  this.clean = false;
+  if (this.schema) {
+    for (var key in this.schema.fields) {
+      if(this.schema.fields[key].inversed &&
+         this.store[key] instanceof Model) {
+        this.store[key].setDirty();
+      }
+    }
+  }
 };
 
 Model.prototype._hook = function (key, options, done) {
