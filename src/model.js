@@ -49,8 +49,12 @@ Model.prototype._dispatch = function (methodName, args) {
   try {
     this.emit.apply(this, [methodName].concat(args));
     return this['_' + methodName].apply(this, args);
-  } catch (err) {
-    return args[offset + 1](err);
+  } catch (sourceErr) {
+    try {
+      return args[offset + 1](sourceErr);
+    } catch(err) {
+      throw sourceErr;
+    }
   }
 };
 
