@@ -111,7 +111,9 @@ Mapper.prototype.mapModel = function (field, model, method, done) {
     };
     return result;
   }, {}), function (err, result) {
+    if (err) return done(err);
     method.call(self, field, model, result, function (err, result) {
+      if (err) return done(err);
       async.parallel(mapped, function (err) {
         done(err, result);
       });
