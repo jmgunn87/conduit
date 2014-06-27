@@ -14,15 +14,15 @@ describe('LevelDBAdapter', function () {
     fields: { 
       id       : { type: 'integer' },
       entity   : { type: 'entity',   entity: 'OtherTest' },
-      object   : { type: 'object',   length: 255 },
-      array    : { type: 'array',    length: 255 },
-      string   : { type: 'string',   length: 255 },
-      boolean  : { type: 'boolean',  length: 1   },
-      float    : { type: 'float',    length: 255 },
-      integer  : { type: 'integer',  length: 255 },
-      date     : { type: 'date',     length: 255 },
-      datetime : { type: 'datetime', length: 255 },
-      time     : { type: 'time',     length: 255 }
+      object   : { type: 'object',   index: true, length: 255 },
+      array    : { type: 'array',    index: true, length: 255 },
+      string   : { type: 'string',   index: true, length: 255 },
+      boolean  : { type: 'boolean',  index: true, length: 1   },
+      float    : { type: 'float',    index: true, length: 255 },
+      integer  : { type: 'integer',  index: true, length: 255 },
+      date     : { type: 'date',     index: true, length: 255 },
+      datetime : { type: 'datetime', index: true, length: 255 },
+      time     : { type: 'time',     index: true, length: 255 }
     }
   };
   
@@ -103,11 +103,46 @@ describe('LevelDBAdapter', function () {
         done();
       }); 
     });
+    it("allows basic querying", function (done) {
+      adapter.get(null, {
+        offset: 'TestEntity',
+        limit: 2
+      }, function (err, records) {
+        if (err) throw err;
+        assert.equal(records.length, 2);
+        for (var i=0; i < records.length; ++i) {
+          var entity = records[i];
+          assert.deepEqual(entity.string, values.string);
+          assert.deepEqual(entity.array, values.array);
+          assert.deepEqual(entity.object, values.object);
+          assert.deepEqual(entity.boolean, values.boolean);
+          assert.deepEqual(entity.float, values.float);
+          assert.deepEqual(entity.number, values.number);
+          assert.deepEqual(entity.date, values.date);
+          assert.deepEqual(entity.datetime, values.datetime);
+          assert.deepEqual(entity.time, values.time);
+        }
+        done();
+      });
+    });
   });
   
   describe("#del", function () {
     it("deletes an entity", function (done) {
       adapter.del(values.id, done);
+    });
+    it("destroys any indexes", function (done) {
+      var found = undefined;
+      adapter.client.createReadStream()
+        .on('data', function (data) {
+          found = new Error('indexes found');
+        })
+        .on('error', function (err) {
+          throw err;
+        })
+        .on('end', function () {
+          done(found);
+        });
     });
   });
 
