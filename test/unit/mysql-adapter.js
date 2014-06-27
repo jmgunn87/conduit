@@ -131,7 +131,7 @@ describe('MySQLAdapter', function () {
     });
   });
   
-  xdescribe('#get', function () {
+  describe('#get', function () {
     it('retreives an entity from its table', function (done) {
       adapter.get(insertID, function (err, entity) {
         if (err) throw err;
@@ -143,9 +143,21 @@ describe('MySQLAdapter', function () {
         assert.deepEqual(entity._boolean, values._boolean);
         assert.deepEqual(entity._float, values._float);
         assert.deepEqual(entity._integer, values._integer);
-        assert.deepEqual(entity._date, values._date);
-        assert.deepEqual(entity._datetime, values._datetime);
-        assert.deepEqual(entity._time, values._time);
+        assert.deepEqual(entity._date.getFullYear(), values._date.getFullYear());
+        assert.deepEqual(entity._date.getMonth(), values._date.getMonth());
+        assert.deepEqual(entity._date.getDate(), values._date.getDate());
+        assert.deepEqual(entity._datetime.getFullYear(), values._datetime.getFullYear());
+        assert.deepEqual(entity._datetime.getMonth(), values._datetime.getMonth());
+        assert.deepEqual(entity._datetime.getDate(), values._datetime.getDate());
+        assert.deepEqual(entity._datetime.getHours(), values._datetime.getHours());
+        assert.deepEqual(entity._datetime.getMinutes(), values._datetime.getMinutes());
+        assert.deepEqual(entity._datetime.getSeconds(), values._datetime.getSeconds());
+        assert.deepEqual(entity._time.getFullYear(), values._time.getFullYear());
+        assert.deepEqual(entity._time.getMonth(), values._time.getMonth());
+        assert.deepEqual(entity._time.getDate(), values._time.getDate());
+        assert.deepEqual(entity._time.getHours(), values._time.getHours());
+        assert.deepEqual(entity._time.getMinutes(), values._time.getMinutes());
+        assert.deepEqual(entity._time.getSeconds(), values._time.getSeconds());
         done();
       }); 
     });
@@ -168,7 +180,7 @@ describe('MySQLAdapter', function () {
     });
   });
   
-  xdescribe('#del', function () {
+  describe('#del', function () {
     it('deletes an entity', function (done) {
       adapter.del(insertID, done);
     });

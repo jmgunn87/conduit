@@ -18,13 +18,13 @@ MySQLAdapter.prototype.encoders._default = function (v, o, d) {
   if (v === null || v === undefined) v = 'NULL';
   return d(null, '\'' + JSON.stringify(v).replace(/"/g, '\\"') + '\'');
 };
-MySQLAdapter.prototype.encoders.entity   = function (v, o, d) {
+MySQLAdapter.prototype.encoders.entity = function (v, o, d) {
   return d(null, parseInt(v, 10));
 };
-MySQLAdapter.prototype.encoders.boolean   = function (v, o, d) {
+MySQLAdapter.prototype.encoders.boolean = function (v, o, d) {
   return d(null, Number(v));
 };
-MySQLAdapter.prototype.encoders.date     = function (v, o, d) {
+MySQLAdapter.prototype.encoders.date = function (v, o, d) {
   return d(null, JSON.stringify(
     v.getFullYear()    + '-' +
     (v.getMonth() + 1) + '-' +
@@ -232,11 +232,6 @@ MySQLAdapter.prototype._put = function (id, model, options, callback) {
   this.encoder.transcode(model, schema, function (err, values) {
     if (err) return callback(err);
     delete values.id;
-    console.log(template({
-        entity: entity,
-        fields: fields,
-        values: _.values(values)
-      }));
 
     try {
       client.query(template({
@@ -269,26 +264,23 @@ MySQLAdapter.prototype._get = function (id, options, callback) {
     options.query.id = id; 
   }
 
-  client.serialize(function() {
-    try {
-      sql = template({
-        entity: entity,
-        fields: options.fields,
-        query: options.query,
-        offset: options.offset,
-        limit: options.limit
-      });
-    } catch (e) {
-      return callback(e); 
-    }
-
-    client.all(sql, [], function (err, result) {
-      if (err) return callback(err);
-      async.map(result, function (item, done) { 
-        decoder.transcode(item, schema, done);
-      }, callback);
+  try {
+    sql = template({
+      entity: entity,
+      fields: options.fields,
+      query: options.query,
+      offset: options.offset,
+      limit: options.limit
     });
+  } catch (e) {
+    return callback(e); 
+  }
 
+  client.query(sql, [], function (err, result) {
+    if (err) return callback(err);
+    async.map(result, function (item, done) { 
+      decoder.transcode(item, schema, done);
+    }, callback);
   });
 };
 
@@ -297,18 +289,11 @@ MySQLAdapter.prototype._del = function (id, options, callback) {
     _.template(options.template) : this.templates.del;
 
   try {
-    this.exec(template({ 
+    this.client.query(template({ 
       entity: this.entity, 
       id: id 
     }), [], callback);
   } catch (e) { 
     return callback(e); 
   }
-};
-
-MySQLAdapter.prototype.exec = function (sql, options, callback) {
-  var client = this.client; 
-  client.serialize(function() { 
-    client.run(sql, options, callback); 
-  });
 };
