@@ -26,7 +26,7 @@ Model.prototype = Object.create(EventEmitter.prototype);
 
 Model.prototype._dispatch = function (methodName, args) {
   var sync = false;
-  var keyType = typeof args[0];
+  var keyType = args[0] ? typeof args[0] : undefined;
   var offset = methodName === 'put' && 
     keyType !== 'object' ? 2 : 1 ;
 
