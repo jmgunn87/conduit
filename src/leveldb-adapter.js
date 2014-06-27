@@ -25,10 +25,6 @@ LevelDBAdapter.prototype.disconnect = function (callback) {
   this.client.close(callback); 
 };
 
-LevelDBAdapter.prototype.migrate = function (callback) { 
-  return callback(null); 
-};
-
 LevelDBAdapter.prototype._put = function (id, model, options, callback) {
   var self = this;
   var entity = this.entity;

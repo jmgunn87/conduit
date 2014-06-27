@@ -108,7 +108,7 @@ function Account(config) {
   Model.call(this, config);
 }
 
-Account.prototype = Account.create(Model.prototype);
+Account.prototype = Object.create(Model.prototype);
 </code></pre>
         <h4 id="lifecycle_hooks">Lifecycle hooks</h4>
         <dl>

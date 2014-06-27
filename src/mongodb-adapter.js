@@ -32,10 +32,6 @@ MongoDBAdapter.prototype.disconnect = function (callback) {
   callback();
 };
 
-MongoDBAdapter.prototype.migrate = function (callback) { 
-  callback(null); 
-};
-
 MongoDBAdapter.prototype._put = function (id, model, options, callback) {
   var self = this;
   var collection = this.collection;
@@ -75,6 +71,6 @@ MongoDBAdapter.prototype._get = function (id, options, callback) {
 };
 
 MongoDBAdapter.prototype._del = function (id, options, callback) {
- this.collection.remove({ id: id }, callback);
+  this.collection.remove({ id: id }, callback);
 };
 

@@ -11,12 +11,6 @@ function RestJsonAdapter(config) {
 
 RestJsonAdapter.prototype = Object.create(Adapter.prototype);
 
-RestJsonAdapter.prototype.connect    =
-RestJsonAdapter.prototype.disconnect =
-RestJsonAdapter.prototype.migrate    = function (callback) { 
-  callback(null); 
-};
-
 RestJsonAdapter.prototype._put = function (id, model, options, callback) {
   var self = this;
   var path = this.config.path;

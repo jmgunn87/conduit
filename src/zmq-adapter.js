@@ -23,10 +23,6 @@ ZMQAdapter.prototype.disconnect = function (callback) {
   callback();
 };
 
-ZMQAdapter.prototype.migrate = function (callback) { 
-  callback(null); 
-};
-
 ZMQAdapter.prototype._put = function (id, model, options, callback) {
   var self = this;
   var socket = this.socket;
