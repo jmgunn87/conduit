@@ -25,7 +25,9 @@ Conduit.prototype.registerSchema = function (key, value, done) {
 
 Conduit.prototype.registerModel = function (key, value, done) {
   return this.put(key + '/model', function (p) {
-    return new value(p);
+    var instance = new value(p);
+    instance.put(p);
+    return instance;
   }, done);
 };
 

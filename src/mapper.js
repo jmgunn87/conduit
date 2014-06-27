@@ -53,7 +53,7 @@ Mapper.prototype._get = function(entity, id, done) {
       done(null, !_.isArray(result) ?
         self.container.get(entity + '/model', result) :
         _.map(result, function (model) {
-          return self.container.get(entity + '/model', result);
+          return self.container.get(entity + '/model', model);
         }));
     });
 };

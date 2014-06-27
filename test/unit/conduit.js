@@ -1,4 +1,5 @@
 var assert = require('assert');
+var Model = require('./../../src/model');
 var Adapter = require('./../../src/adapter');
 var Conduit = require('./../../src/conduit');
 
@@ -15,7 +16,7 @@ describe('Conduit', function () {
   
   describe("#model", function () {
     it("registers a model with the container", function () {
-      instance.registerModel('User', Object);
+      instance.registerModel('User', Model);
       assert.deepEqual(instance.get('User/model').container, instance);
     });
   });

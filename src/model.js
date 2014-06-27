@@ -7,6 +7,7 @@ module.exports = Model;
 function Model(config) {
   config = config || {};
   EventEmitter.call(this);
+  this.container = config.container;
   this.mapper = config.mapper;
   this.parent = config.parent;
   this.schema = config.schema || {};
