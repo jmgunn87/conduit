@@ -6,7 +6,7 @@ var Transcoder = require('./../../src/transcoder');
 var Validator = require('./../../src/validator');
 var MySQLAdapter = require('./../../src/mysql-adapter');
 
-xdescribe('MySQLAdapter', function () {
+describe('MySQLAdapter', function () {
 
   var schemas = {};
   schemas.TestEntity = {

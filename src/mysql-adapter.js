@@ -18,10 +18,29 @@ MySQLAdapter.prototype.encoders._default = function (v, o, d) {
   if (v === null || v === undefined) v = 'NULL';
   return d(null, '\'' + JSON.stringify(v).replace(/"/g, '\\"') + '\'');
 };
-MySQLAdapter.prototype.encoders.date     =
-MySQLAdapter.prototype.encoders.datetime =
-MySQLAdapter.prototype.encoders.time     = function (v, o, d) {
-  return MySQLAdapter.prototype.encoders._default(v.getTime(), o, d);
+MySQLAdapter.prototype.encoders.entity   = function (v, o, d) {
+  return d(null, parseInt(v, 10));
+};
+MySQLAdapter.prototype.encoders.boolean   = function (v, o, d) {
+  return d(null, Number(v));
+};
+MySQLAdapter.prototype.encoders.date     = function (v, o, d) {
+  return d(null, JSON.stringify(
+    v.getFullYear()    + '-' +
+    (v.getMonth() + 1) + '-' +
+    v.getDate()
+  ));
+};
+MySQLAdapter.prototype.encoders.time     =
+MySQLAdapter.prototype.encoders.datetime = function (v, o, d) {
+  return d(null, JSON.stringify(
+    v.getFullYear()    + '-' +
+    (v.getMonth() + 1) + '-' +
+    v.getDate()        + '-' +
+    v.getHours()       + '-' +
+    v.getMinutes()     + '-' +
+    v.getSeconds()
+  ));
 };
 
 MySQLAdapter.prototype.decoders = Object.create(Adapter.prototype.decoders);
@@ -224,8 +243,9 @@ MySQLAdapter.prototype._put = function (id, model, options, callback) {
         entity: entity,
         fields: fields,
         values: _.values(values)
-      }), [], function (err) {
-        callback(err, this.lastID);
+      }), [], function (err, result) {
+        if (err) return callback(err);
+        callback(null, result.insertId);
       });
     } catch (e) {
       return callback(e); 
