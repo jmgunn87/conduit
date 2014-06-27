@@ -9,6 +9,7 @@ Conduit.Adapter = require('./src/adapter');
 Conduit.LevelDBAdapter = require('./src/leveldb-adapter');
 Conduit.MongoDBAdapter = require('./src/mongodb-adapter');
 Conduit.SQLite3Adapter = require('./src/sqlite3-adapter');
+Conduit.MySQLAdapter = require('./src/mysql-adapter');
 Conduit.RestJsonAdapter = require('./src/rest-json-adapter');
 Conduit.ZMQAdapter = require('./src/zmq-adapter');
 

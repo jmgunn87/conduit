@@ -4,7 +4,7 @@ var Container = require('./../../src/container');
 var Transcoder = require('./../../src/transcoder');
 var Validator = require('./../../src/validator');
 
-describe('MongoDBAdapter', function () {
+xdescribe('MongoDBAdapter', function () {
 
   var schemas = {};
   schemas.TestEntity = {
