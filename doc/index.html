@@ -144,6 +144,13 @@ Account.prototype.preUpdate = [
           <dt>time</dt><dd>javascript <strong>Date</strong> type</dd>
         </dl>
         <h3 id="adapters">Adapters</h3>
+        <h4>Leveldb</h4>
+        <p>This adapter uses the following key structure to store entities and perform indexing.</p>
+        <dl>
+          <dt>Entity/id/id</dt><dd>storage by id. these fields contain the full entity hashes</dd>
+          <dt>Entity/field/value/id</dt><dd>index by field value. this allows for basic queries by field value</dd>
+        </p>
+        <p>The above key structure allows multiple entities to be persisted to the same database whilst retaining the ability to query by type.</p>
         <h3 id="validation">Validation</h3>
         <h3 id="transcoding">Transcoding</h3>
         <h3 id="generators">Generators</h3>

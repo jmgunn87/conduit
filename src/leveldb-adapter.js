@@ -29,30 +29,28 @@ LevelDBAdapter.prototype._put = function (id, model, options, callback) {
   var self = this;
   var entity = this.entity;
   var schema = this.schema;
+  var batch = this.client.batch();
+  var keyname = entity + '/id/' + id;
 
-  this.encoder.transcode(model, schema, function (err, values) {
-    if (err) return callback(err);
-
-    var batch = self.client.batch();
-    var fields = schema.fields;
-    for (var key in fields) {
-      var field = fields[key];
-      if (field.index) {
-        switch(field.type) {
-          case 'entity':
-          case 'array':
-          case 'object':
-            break;
-          default:
-            batch.put([entity, key, values[key], id].join('/'), id, {
-              valueEncoding: 'utf8'
-            });
-        }
-      }
-    }
-    batch.put(entity + '/id/' + id, values); 
-    batch.write(function () {
-      callback(err, id); 
+  this.client.get(keyname, function (err, existingRecord) {
+    self.encoder.transcode(model, schema, function (err, values) {
+      if (err) return callback(err);
+      self._iterateIndexes(values, function (key, value) {
+        batch.put([entity, key, value, id].join('/'), id, {
+          valueEncoding: 'utf8'
+        });
+      }, function () {
+        self._iterateIndexes(existingRecord, function (key, value) {
+          if (model[key] !== value) {
+            batch.del([entity, key, value, id].join('/'));
+          }
+        }, function () {
+          batch.put(keyname, values); 
+          batch.write(function () {
+            callback(err, id); 
+          });
+        });
+      });
     });
   });
 };
@@ -102,26 +100,38 @@ LevelDBAdapter.prototype._get = function (id, options, callback) {
 };
 
 LevelDBAdapter.prototype._del = function (id, options, callback) { 
+  var self = this;
   var entity = this.entity;
   var fields = this.schema.fields;
   var batch = this.client.batch();
 
   this.client.get(entity + '/id/' + id, function (err, values) {
     if (err) return callback(err);
-    for (var key in fields) {
-      var field = fields[key];
-      if (field.index) {
-        switch(field.type) {
-          case 'entity':
-          case 'array':
-          case 'object':
-            break;
-          default:
-            batch.del([entity, key, values[key], id].join('/'));
-        }
+    self._iterateIndexes(values, function (key, value) {
+      batch.del([entity, key, value, id].join('/'));
+    }, function () {
+      batch.del(entity + '/id/' + id, values); 
+      batch.write(callback);
+    });
+  });
+};
+
+LevelDBAdapter.prototype._iterateIndexes = function (values, iterator, callback) {
+  if (!values) return callback();
+
+  var fields = this.schema.fields;
+  for (var key in fields) {
+    var field = fields[key];
+    if (field.index && values[key]) {
+      switch(field.type) {
+        case 'entity':
+        case 'array':
+        case 'object':
+          break;
+        default:
+          iterator(key, values[key]);
       }
     }
-    batch.del(entity + '/id/' + id, values); 
-    batch.write(callback);
-  });
+  } 
+  callback();
 };

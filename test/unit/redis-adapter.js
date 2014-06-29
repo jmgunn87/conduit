@@ -1,11 +1,11 @@
 var assert = require('assert');
 var rimraf = require('rimraf');
-var LevelDBAdapter = require('./../../src/leveldb-adapter');
+var RedisAdapter = require('./../../src/redis-adapter');
 var Container = require('./../../src/container');
 var Transcoder = require('./../../src/transcoder');
 var Validator = require('./../../src/validator');
 
-describe('LevelDBAdapter', function () {
+describe('RedisAdapter', function () {
 
   var schemas = {};
   schemas.TestEntity = {
@@ -46,10 +46,9 @@ describe('LevelDBAdapter', function () {
   container.put('decoder', function (params) { return new Transcoder(params); });
   container.put('TestEntity/schema', schemas.TestEntity);
 
-  var adapter = new LevelDBAdapter({
+  var adapter = new RedisAdapter({
     container: container,
-    entity: 'TestEntity',
-    path: '/tmp/ldbtest.db'
+    entity: 'TestEntity'
   });
 
   before(function (done) {
@@ -68,29 +67,19 @@ describe('LevelDBAdapter', function () {
     });
   });
 
-  describe("#migrate", function () {
+  xdescribe("#migrate", function () {
     it("creates a db table for a given schema", function (done) {
       adapter.migrate(done);
     });
   });
 
-  describe("#put", function () {
+  xdescribe("#put", function () {
     it("inserts an entity into its table", function (done) {
       adapter.put(values.id, values, done);
     });
-    it("updates indexes properly", function (done) {
-      values.integer = 102;
-      adapter.put(values.id, values, function (err) {
-        if (err) throw err;
-        adapter.client.get('TestEntity/integer/101', function (err, value) {
-          assert.ok(!value);
-          done();
-        });
-      });
-    });
   });
   
-  describe("#get", function () {
+  xdescribe("#get", function () {
     it("retrieves all entities", function (done) {
       adapter.get(undefined, {}, function (err, entities) {
         if (err) throw err;
@@ -137,7 +126,7 @@ describe('LevelDBAdapter', function () {
     });
   });
   
-  describe("#del", function () {
+  xdescribe("#del", function () {
     it("deletes an entity", function (done) {
       adapter.del(values.id, done);
     });

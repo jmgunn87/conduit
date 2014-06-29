@@ -194,10 +194,4 @@ describe('MySQLAdapter', function () {
     });
   });
   
-  xdescribe('#exec', function () {
-    it('executes arbritrary sql statements', function (done) {
-      adapter.exec('SELECT COUNT(*) FROM TestEntity', [], done);
-    });
-  });
-
 });
