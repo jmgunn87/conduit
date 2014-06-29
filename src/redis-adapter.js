@@ -11,7 +11,11 @@ function RedisAdapter(config) {
 RedisAdapter.prototype = Object.create(Adapter.prototype);
 
 RedisAdapter.prototype.encoders = Object.create(Adapter.prototype.encoders);
-RedisAdapter.prototype.encoders._default = function (v, o, d) {
+RedisAdapter.prototype.encoders.boolean  = function (v, o, d) {
+  return d(null, +v);
+};
+RedisAdapter.prototype.encoders.array  =
+RedisAdapter.prototype.encoders.object = function (v, o, d) {
   return d(null, JSON.stringify(v));
 };
 RedisAdapter.prototype.encoders.date     =
@@ -21,7 +25,11 @@ RedisAdapter.prototype.encoders.time     = function (v, o, d) {
 };
 
 RedisAdapter.prototype.decoders = Object.create(Adapter.prototype.decoders);
-RedisAdapter.prototype.decoders._default = function (v, o, d) {
+RedisAdapter.prototype.decoders.boolean  = function (v, o, d) {
+  return d(null, Boolean(parseInt(v, 10)));
+};
+RedisAdapter.prototype.decoders.array  =
+RedisAdapter.prototype.decoders.object = function (v, o, d) {
   return d(null, typeof v == 'string' ? JSON.parse(v) : v);
 };
 RedisAdapter.prototype.decoders.date     =
