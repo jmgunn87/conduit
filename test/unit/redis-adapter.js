@@ -97,7 +97,14 @@ describe('RedisAdapter', function () {
   
   describe("#del", function () {
     it("deletes an entity", function (done) {
-      adapter.del(values.id, done);
+      adapter.del(values.id, function (err) {
+        if (err) throw err;
+        adapter.get(values.id, function(err, value) {
+          if (err) throw err;
+          assert.ok(!value);
+          done();
+        });
+      });
     });
   });
 

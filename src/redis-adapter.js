@@ -76,6 +76,7 @@ RedisAdapter.prototype._get = function (id, options, callback) {
 
   this.client.hgetall(entity + '/id/' + id, function (err, value) {
     if (err) return callback(err);
+    if (!value) return callback(null);
     decoder.transcode(value, schema, callback);
   });
 };
@@ -83,5 +84,5 @@ RedisAdapter.prototype._get = function (id, options, callback) {
 RedisAdapter.prototype._del = function (id, options, callback) { 
   var entity = this.entity;
   var fields = this.schema.fields;
-  this.client.hdel(entity + '/id/' + id, Object.keys(fields), callback);
+  this.client.del(entity + '/id/' + id, callback);
 };
