@@ -122,9 +122,9 @@ LevelDBAdapter.prototype._iterateIndexes = function (values, iterator, callback)
   var fields = this.schema.fields;
   for (var key in fields) {
     var field = fields[key];
-    if (field.index && values[key]) {
+    if (!values[key]) continue;
+    if (field.index || field.type === 'entity') {
       switch(field.type) {
-        case 'entity':
         case 'array':
         case 'object':
           break;
