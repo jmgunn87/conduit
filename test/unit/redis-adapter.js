@@ -1,5 +1,4 @@
 var assert = require('assert');
-var rimraf = require('rimraf');
 var RedisAdapter = require('./../../src/redis-adapter');
 var Container = require('./../../src/container');
 var Transcoder = require('./../../src/transcoder');
@@ -56,31 +55,23 @@ describe('RedisAdapter', function () {
   });
 
   after(function (done) {
-    adapter.disconnect(function () {
-      rimraf('/tmp/ldbtest.db', done);
-    });
+    adapter.disconnect(done);
   });
 
-  describe("#connect", function () {
-    it("pools/caches connections if the already exist for the given path", function (done) {
-      adapter.connect(done);
-    });
-  });
-
-  xdescribe("#migrate", function () {
+  describe("#migrate", function () {
     it("creates a db table for a given schema", function (done) {
       adapter.migrate(done);
     });
   });
 
-  xdescribe("#put", function () {
+  describe("#put", function () {
     it("inserts an entity into its table", function (done) {
       adapter.put(values.id, values, done);
     });
   });
   
-  xdescribe("#get", function () {
-    it("retrieves all entities", function (done) {
+  describe("#get", function () {
+    xit("retrieves all entities", function (done) {
       adapter.get(undefined, {}, function (err, entities) {
         if (err) throw err;
         assert.ok(entities.length);
@@ -102,46 +93,11 @@ describe('RedisAdapter', function () {
         done();
       }); 
     });
-    it("allows basic querying", function (done) {
-      adapter.get(null, {
-        offset: 'TestEntity',
-        limit: 2
-      }, function (err, records) {
-        if (err) throw err;
-        assert.equal(records.length, 2);
-        for (var i=0; i < records.length; ++i) {
-          var entity = records[i];
-          assert.deepEqual(entity.string, values.string);
-          assert.deepEqual(entity.array, values.array);
-          assert.deepEqual(entity.object, values.object);
-          assert.deepEqual(entity.boolean, values.boolean);
-          assert.deepEqual(entity.float, values.float);
-          assert.deepEqual(entity.number, values.number);
-          assert.deepEqual(entity.date, values.date);
-          assert.deepEqual(entity.datetime, values.datetime);
-          assert.deepEqual(entity.time, values.time);
-        }
-        done();
-      });
-    });
   });
   
-  xdescribe("#del", function () {
+  describe("#del", function () {
     it("deletes an entity", function (done) {
       adapter.del(values.id, done);
-    });
-    it("destroys any indexes", function (done) {
-      var found = undefined;
-      adapter.client.createReadStream()
-        .on('data', function (data) {
-          found = new Error('indexes found');
-        })
-        .on('error', function (err) {
-          throw err;
-        })
-        .on('end', function () {
-          done(found);
-        });
     });
   });
 
