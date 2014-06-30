@@ -53,12 +53,12 @@ describe('SQLite3Adapter', function () {
       });
     });
     it("generates a migration if an entity has changes", function (done) {
-      adapter.schema.fields.time.type = 'string';
-      adapter.schema.fields.date.length = 1;
+      adapter.schema.fields._time.type = 'string';
+      adapter.schema.fields._date.length = 1;
       adapter.migrate(function (err) {
         if (err) throw err;
-        adapter.schema.fields.time.type = 'time';
-        adapter.schema.fields.date.length = 255;
+        adapter.schema.fields._time.type = 'time';
+        adapter.schema.fields._date.length = 255;
         done();
       });
     });
@@ -97,16 +97,16 @@ describe('SQLite3Adapter', function () {
     it('retreives an entity from its table', function (done) {
       adapter.get(insertID, function (err, entity) {
         if (err) throw err;
-        assert.deepEqual(entity.entity, values.entity);
-        assert.deepEqual(entity.string, values.string);
-        assert.deepEqual(entity.array, values.array);
-        assert.deepEqual(entity.object, values.object);
-        assert.deepEqual(entity.boolean, values.boolean);
-        assert.deepEqual(entity.float, values.float);
-        assert.deepEqual(entity.integer, values.integer);
-        assert.deepEqual(entity.date, values.date);
-        assert.deepEqual(entity.datetime, values.datetime);
-        assert.deepEqual(entity.time, values.time);
+        assert.deepEqual(entity._entity, values._entity);
+        assert.deepEqual(entity._string, values._string);
+        assert.deepEqual(entity._array, values._array);
+        assert.deepEqual(entity._object, values._object);
+        assert.deepEqual(entity._boolean, values._boolean);
+        assert.deepEqual(entity._float, values._float);
+        assert.deepEqual(entity._integer, values._integer);
+        assert.deepEqual(entity._date, values._date);
+        assert.deepEqual(entity._datetime, values._datetime);
+        assert.deepEqual(entity._time, values._time);
         done();
       }); 
     });

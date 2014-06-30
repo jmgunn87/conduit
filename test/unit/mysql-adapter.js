@@ -1,54 +1,13 @@
 var assert = require('assert');
 var _ = require('lodash');
-var Model = require('./../../src/model');
-var Container = require('./../../src/container');
-var Transcoder = require('./../../src/transcoder');
-var Validator = require('./../../src/validator');
 var MySQLAdapter = require('./../../src/mysql-adapter');
+var container = require('./index');
 
 describe('MySQLAdapter', function () {
 
-  var schemas = {};
-  schemas.TestEntity = {
-    entity: 'TestEntity',
-    id: 'id',
-    fields: { 
-      id        : { type: 'integer' },
-      _entity   : { type: 'entity',   entity: 'OtherTest' },
-      _object   : { type: 'object',   length: 255 },
-      _array    : { type: 'array',    length: 255 },
-      _string   : { type: 'string',   length: 255 },
-      _boolean  : { type: 'boolean',  length: 1   },
-      _float    : { type: 'float',    length: 255 },
-      _integer  : { type: 'integer',  length: 255 },
-      _date     : { type: 'date',     length: 255 },
-      _datetime : { type: 'datetime', length: 255 },
-      _time     : { type: 'time',     length: 255 },
-      _bad      : { type: 'bad',      length: 255 }
-    }
-  };
-  
-  var values = {
-    _entity   : '98989898',
-    _object   : { a: 1, b: 2, c: 3 },
-    _array    : [1, 2, 3],
-    _string   : 'string',
-    _boolean  : false,
-    _float    : 100.001,
-    _integer  : 101,
-    _date     : new Date(),
-    _datetime : new Date(),
-    _time     : new Date(),
-    _bad      : true
-  };
-
-  var container = new Container();
-  container.put('validator', function (params) { return new Validator(params); });
-  container.put('encoder', function (params) { return new Transcoder(params); });
-  container.put('decoder', function (params) { return new Transcoder(params); });
-  container.put('TestEntity/schema', schemas.TestEntity);
-
   var insertID = null;
+  var schema = container.get('schemas').TestEntity;
+  var values = container.get('seeds').TestEntity[0];
   var adapter = new MySQLAdapter({
     container: container,
     entity: 'TestEntity',
@@ -60,7 +19,11 @@ describe('MySQLAdapter', function () {
   });
 
   before(function (done) {
-    adapter.connect(done);
+    adapter.encoder.transcode(values, schema, function (err, result) {
+      if (err) throw err;
+      values = result;
+      adapter.connect(done);
+    });
   });
 
   after(function (done) {
@@ -83,25 +46,6 @@ describe('MySQLAdapter', function () {
     });
   });
   
-  describe("#migrate", function () {
-    it("does not generate any migrations for an unchanged entity", function (done) {
-      adapter.migrate(function (err, migration) {
-        if (err) throw err;
-        done();
-      });
-    });
-    it("generates a migration if an entity has changes", function (done) {
-      adapter.schema.fields._time.type = 'string';
-      adapter.schema.fields._date.length = 1;
-      adapter.migrate(function (err) {
-        if (err) throw err;
-        adapter.schema.fields._time.type = 'time';
-        adapter.schema.fields._date.length = 255;
-        done();
-      });
-    });
-  });
-
   describe('#put', function () {
     it('inserts an entity into its table', function (done) {
       adapter.put(values.id, values, function (err, id) {
@@ -135,7 +79,6 @@ describe('MySQLAdapter', function () {
     it('retreives an entity from its table', function (done) {
       adapter.get(insertID, function (err, entity) {
         if (err) throw err;
-        entity = entity[0]
         assert.deepEqual(entity._entity, values._entity);
         assert.deepEqual(entity._string, values._string);
         assert.deepEqual(entity._array, values._array);
@@ -143,21 +86,6 @@ describe('MySQLAdapter', function () {
         assert.deepEqual(entity._boolean, values._boolean);
         assert.deepEqual(entity._float, values._float);
         assert.deepEqual(entity._integer, values._integer);
-        assert.deepEqual(entity._date.getFullYear(), values._date.getFullYear());
-        assert.deepEqual(entity._date.getMonth(), values._date.getMonth());
-        assert.deepEqual(entity._date.getDate(), values._date.getDate());
-        assert.deepEqual(entity._datetime.getFullYear(), values._datetime.getFullYear());
-        assert.deepEqual(entity._datetime.getMonth(), values._datetime.getMonth());
-        assert.deepEqual(entity._datetime.getDate(), values._datetime.getDate());
-        assert.deepEqual(entity._datetime.getHours(), values._datetime.getHours());
-        assert.deepEqual(entity._datetime.getMinutes(), values._datetime.getMinutes());
-        assert.deepEqual(entity._datetime.getSeconds(), values._datetime.getSeconds());
-        assert.deepEqual(entity._time.getFullYear(), values._time.getFullYear());
-        assert.deepEqual(entity._time.getMonth(), values._time.getMonth());
-        assert.deepEqual(entity._time.getDate(), values._time.getDate());
-        assert.deepEqual(entity._time.getHours(), values._time.getHours());
-        assert.deepEqual(entity._time.getMinutes(), values._time.getMinutes());
-        assert.deepEqual(entity._time.getSeconds(), values._time.getSeconds());
         done();
       }); 
     });
