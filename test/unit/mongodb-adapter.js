@@ -1,50 +1,11 @@
 var assert = require('assert');
 var MongoDBAdapter = require('./../../src/mongodb-adapter');
-var Container = require('./../../src/container');
-var Transcoder = require('./../../src/transcoder');
-var Validator = require('./../../src/validator');
+var container = require('./index');
 
 describe('MongoDBAdapter', function () {
 
-  var schemas = {};
-  schemas.TestEntity = {
-    entity: 'TestEntity',
-    id: 'id',
-    fields: { 
-      id       : { type: 'integer' },
-      entity   : { type: 'entity',   entity: 'OtherTest' },
-      object   : { type: 'object',   length: 255 },
-      array    : { type: 'array',    length: 255 },
-      string   : { type: 'string',   length: 255 },
-      boolean  : { type: 'boolean',  length: 1   },
-      float    : { type: 'float',    length: 255 },
-      integer  : { type: 'integer',  length: 255 },
-      date     : { type: 'date',     length: 255 },
-      datetime : { type: 'datetime', length: 255 },
-      time     : { type: 'time',     length: 255 }
-    }
-  };
-  
-  var values = {
-    id       : '1',
-    entity   : '98989898',
-    object   : { a: 1, b: 2, c: 3 },
-    array    : [1, 2, 3],
-    string   : 'string',
-    boolean  : false,
-    float    : 100.001,
-    integer  : 101,
-    date     : new Date(),
-    datetime : new Date(),
-    time     : new Date()
-  };
-
-  var container = new Container();
-  container.put('validator', function (params) { return new Validator(params); });
-  container.put('encoder', function (params) { return new Transcoder(params); });
-  container.put('decoder', function (params) { return new Transcoder(params); });
-  container.put('TestEntity/schema', schemas.TestEntity);
-
+  var schema = container.get('schemas').TestEntity;
+  var values = container.get('seeds').TestEntity[0];
   var adapter = new MongoDBAdapter({
     container: container,
     entity: 'TestEntity',
@@ -54,7 +15,11 @@ describe('MongoDBAdapter', function () {
   });
 
   before(function (done) {
-    adapter.connect(done);
+    adapter.encoder.transcode(values, schema, function (err, result) {
+      if (err) throw err;
+      values = result;
+      adapter.connect(done);
+    });
   });
 
   after(function (done) {

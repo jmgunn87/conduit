@@ -33,22 +33,15 @@ MongoDBAdapter.prototype.disconnect = function (callback) {
 };
 
 MongoDBAdapter.prototype._put = function (id, model, options, callback) {
-  var self = this;
-  var collection = this.collection;
-
-  this.encoder.transcode(model, this.schema, function (err, values) {
+  this.collection.update({ id: id }, { $set: model}, { w:1, upsert: true }, function (err) {
     if (err) return callback(err);
-    collection.update({ id: id }, { $set: values }, { w:1, upsert: true }, function (err) {
-      if (err) return callback(err);
-      callback(null, id);
-    });
+    callback(null, id);
   });
 };
 
 MongoDBAdapter.prototype._get = function (id, options, callback) {
   var self = this;
   var schema = this.schema;
-  var decoder = this.decoder;
   
   options = options || {};
   if (!options.query && id) {
@@ -56,16 +49,11 @@ MongoDBAdapter.prototype._get = function (id, options, callback) {
     options.query.id = id; 
   }
   
-  this.collection.find(options.query, function (err, data) {
+  this.collection.find(options.query, function (err, docs) {
     if (err) return callback(err);
-    data.toArray(function (err, docs) {
+    docs.toArray(function (err, models) {
       if (err) return callback(err);
-      async.map(docs, function (item, done) { 
-        decoder.transcode(item, schema, done);
-      }, function (err, models) {
-        if (err) return callback(err);
-        return callback(null, models.length === 1 ? models[0] : models);
-      });
+      callback(null, models.length === 1 ? models[0] : models);
     });
   });
 };
