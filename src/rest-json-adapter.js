@@ -12,23 +12,13 @@ function RestJsonAdapter(config) {
 RestJsonAdapter.prototype = Object.create(Adapter.prototype);
 
 RestJsonAdapter.prototype._put = function (id, model, options, callback) {
-  var self = this;
   var path = this.config.path;
-
-  this.encoder.transcode(model, this.schema, function (err, values) {
-    if (err) return callback(err);
-    request.put(path + '/' + id, {
-      json: values
-    }, function (err, res, body) {
-      callback(err, body ? body.id : undefined);
-    });
+  request.put(path + '/' + id, { json: model }, function (err, res, body) {
+    callback(err, body ? body.id : undefined);
   });
 };
 
 RestJsonAdapter.prototype._get = function (id, options, callback) { 
-  var schema = this.schema;
-  var decoder = this.decoder;
-  
   options = options || {};
   if (!options.query && id) {
     options.query = {};
@@ -40,13 +30,7 @@ RestJsonAdapter.prototype._get = function (id, options, callback) {
     json: true
   }, function (err, res, body) {
     if (err) return callback(err);
-    if(_.isArray(body)) {
-      async.map(body, function (item, done) { 
-        decoder.transcode(body, schema, done);
-      }, callback);
-    } else {
-      decoder.transcode(body, schema, callback);
-    }
+    callback(null, body);
   });
 };
 
