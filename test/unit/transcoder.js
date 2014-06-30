@@ -40,7 +40,18 @@ describe("Transcoder", function () {
           error: { type: 'error' }
         }
       }, function (err, transcoded) {
-        assert.ok(err); 
+        assert.ok(err);
+        done();
+      });
+    });
+    it("handles null values", function (done) {
+      this.instance.transcode(null, {
+        fields: {
+          error: { type: 'error' }
+        }
+      }, function (err, transcoded) {
+        if (err) throw err;
+        assert.ok(!transcoded);
         done();
       });
     });

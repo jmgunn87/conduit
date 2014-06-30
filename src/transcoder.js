@@ -10,6 +10,9 @@ Transcoder.prototype = Object.create(Model.prototype);
 
 Transcoder.prototype.transcode = function (value, schema, done) {
   var self = this;
+
+  if (!value) return done(null, value);
+
   async.parallel(_.reduce(schema.fields, function (reduction, field, key) {
     reduction[key] = function (callback) {
       var transcoder = self.get(field.type) || self.get('_default');
