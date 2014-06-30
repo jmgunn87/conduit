@@ -5,40 +5,8 @@ var container = require('./index');
 
 describe('LevelDBAdapter', function () {
 
-  var schemas = {};
-  schemas.TestEntity = {
-    entity: 'TestEntity',
-    id: 'id',
-    fields: { 
-      id       : { type: 'integer' },
-      entity   : { type: 'entity',   entity: 'OtherTest' },
-      object   : { type: 'object',   index: true, length: 255 },
-      array    : { type: 'array',    index: true, length: 255 },
-      string   : { type: 'string',   index: true, length: 255 },
-      boolean  : { type: 'boolean',  index: true, length: 1   },
-      float    : { type: 'float',    index: true, length: 255 },
-      integer  : { type: 'integer',  index: true, length: 255 },
-      date     : { type: 'date',     index: true, length: 255 },
-      datetime : { type: 'datetime', index: true, length: 255 },
-      time     : { type: 'time',     index: true, length: 255 }
-    }
-  };
-  
-  var values = {
-    id       : '1',
-    entity   : '98989898',
-    object   : { a: 1, b: 2, c: 3 },
-    array    : [1, 2, 3],
-    string   : 'string',
-    boolean  : false,
-    float    : 100.001,
-    integer  : 101,
-    date     : new Date(),
-    datetime : new Date(),
-    time     : new Date()
-  };
-
-  container.put('TestEntity/schema', schemas.TestEntity);
+  var schema = container.get('schemas').TestEntity;
+  var values = container.get('seeds').TestEntity[0];
   var adapter = new LevelDBAdapter({
     container: container,
     entity: 'TestEntity',
@@ -46,7 +14,11 @@ describe('LevelDBAdapter', function () {
   });
 
   before(function (done) {
-    adapter.connect(done);
+    adapter.encoder.transcode(values, schema, function (err, result) {
+      if (err) throw err;
+      values = result;
+      adapter.connect(done);
+    });
   });
 
   after(function (done) {
@@ -100,9 +72,9 @@ describe('LevelDBAdapter', function () {
         assert.deepEqual(entity.boolean, values.boolean);
         assert.deepEqual(entity.float, values.float);
         assert.deepEqual(entity.number, values.number);
-        assert.deepEqual(new Date(entity.date), values.date);
-        assert.deepEqual(new Date(entity.datetime), values.datetime);
-        assert.deepEqual(new Date(entity.time), values.time);
+        assert.deepEqual(entity.date, values.date);
+        assert.deepEqual(entity.datetime, values.datetime);
+        assert.deepEqual(entity.time, values.time);
         done();
       }); 
     });
@@ -121,9 +93,9 @@ describe('LevelDBAdapter', function () {
           assert.deepEqual(entity.boolean, values.boolean);
           assert.deepEqual(entity.float, values.float);
           assert.deepEqual(entity.number, values.number);
-          assert.deepEqual(new Date(entity.date), values.date);
-          assert.deepEqual(new Date(entity.datetime), values.datetime);
-          assert.deepEqual(new Date(entity.time), values.time);
+          assert.deepEqual(entity.date, values.date);
+          assert.deepEqual(entity.datetime, values.datetime);
+          assert.deepEqual(entity.time, values.time);
         }
         done();
       });
