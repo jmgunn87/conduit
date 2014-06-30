@@ -24,15 +24,18 @@ Mapper.prototype._put = function(entity, instance, options, done) {
       isNew ? 'preCreate' : '', 'preUpdate'
     ], function (err) {
       if (err) return done(err);
-      adapter.put(data.id, data, function (err, id) {
+      adapter.encoder.transcode(data, instance.schema, function (err, values) {
         if (err) return done(err);
-        instance.store.id = id;
-        instance.clean = true;
-        instance.hook([
-          isNew ? 'postCreate' : '', 'postUpdate'
-        ], function (err) {
+        adapter.put(values.id, values, function (err, id) {
           if (err) return done(err);
-          done(err, id);
+          instance.store.id = id;
+          instance.clean = true;
+          instance.hook([
+            isNew ? 'postCreate' : '', 'postUpdate'
+          ], function (err) {
+            if (err) return done(err);
+            done(err, id);
+          });
         });
       });
     });
@@ -41,21 +44,29 @@ Mapper.prototype._put = function(entity, instance, options, done) {
 
 Mapper.prototype._get = function(entity, id, done) {
   var self = this;
+  var adapter = self.container.get(entity + '/adapter');
+  var schema = self.container.get(entity + '/schema');
+  var decoder = adapter.decoder;
   var options = {}; 
   if (typeof id === 'object') {
     options = id;
     id = undefined;
   }
 
-  self.container.get(entity + '/adapter')
-    .get(id, options, function (err, result) {
+  adapter.get(id, options, function (err, result) {
+    if (err) return done(err);
+    var isArray = _.isArray(result);
+    async.map(isArray ? result : [result], function (item, done) { 
+      decoder.transcode(item, schema, done);
+    }, function (err, decoded) {
       if (err) return done(err);
-      done(null, !_.isArray(result) ?
-        self.container.get(entity + '/model', result) :
-        _.map(result, function (model) {
+      done(null, !isArray ?
+        self.container.get(entity + '/model', decoded[0]) :
+        _.map(decoded, function (model) {
           return self.container.get(entity + '/model', model);
         }));
     });
+  });
 };
 
 Mapper.prototype._del = function(entity, id, done) {

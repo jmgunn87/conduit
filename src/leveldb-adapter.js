@@ -33,22 +33,19 @@ LevelDBAdapter.prototype._put = function (id, model, options, callback) {
   var keyname = entity + '/id/' + id;
 
   this.client.get(keyname, function (err, existingRecord) {
-    self.encoder.transcode(model, schema, function (err, values) {
-      if (err) return callback(err);
-      self._iterateIndexes(values, function (key, value) {
-        batch.put([entity, key, value, id].join('/'), id, {
-          valueEncoding: 'utf8'
-        });
+    self._iterateIndexes(model, function (key, value) {
+      batch.put([entity, key, value, id].join('/'), id, {
+        valueEncoding: 'utf8'
+      });
+    }, function () {
+      self._iterateIndexes(existingRecord, function (key, value) {
+        if (model[key] !== value) {
+          batch.del([entity, key, value, id].join('/'));
+        }
       }, function () {
-        self._iterateIndexes(existingRecord, function (key, value) {
-          if (model[key] !== value) {
-            batch.del([entity, key, value, id].join('/'));
-          }
-        }, function () {
-          batch.put(keyname, values); 
-          batch.write(function () {
-            callback(err, id); 
-          });
+        batch.put(keyname, model); 
+        batch.write(function (err) {
+          callback(err, id); 
         });
       });
     });
@@ -59,7 +56,6 @@ LevelDBAdapter.prototype._get = function (id, options, callback) {
   var self = this;
   var entity = this.entity;
   var schema = this.schema;
-  var decoder = this.decoder;
 
   if (!id) {
     var batch = [];
@@ -86,17 +82,12 @@ LevelDBAdapter.prototype._get = function (id, options, callback) {
           self._get(id, null, done);
         }, function (err, fetched) {
           if (err) return callback(err);
-          async.map(result.concat(fetched), function (item, done) { 
-            decoder.transcode(item, schema, done);
-          }, callback);
+          callback(null, result.concat(fetched)); 
         });
       }); 
   }
 
-  this.client.get(entity + '/id/' + id, function (err, value) {
-    if (err) return callback(err);
-    decoder.transcode(value, schema, callback);
-  });
+  this.client.get(entity + '/id/' + id, callback);
 };
 
 LevelDBAdapter.prototype._del = function (id, options, callback) { 

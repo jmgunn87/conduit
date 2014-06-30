@@ -1,7 +1,10 @@
 var assert = require('assert');
 var Model = require('./../../src/model');
+var Adapter = require('./../../src/adapter');
 var Container = require('./../../src/container');
 var Mapper = require('./../../src/mapper');
+var Validator = require('./../../src/validator');
+var Transcoder = require('./../../src/transcoder');
 
 var schemas = {};
 schemas.gene = {
@@ -54,34 +57,20 @@ describe('Mapper', function () {
 
   before(function () {
     container = new Container();
+    container.put('validator', function (params) { return new Validator(params); });
+    container.put('encoder', function (params) { return new Transcoder(params); });
+    container.put('decoder', function (params) { return new Transcoder(params); });
     container.put('gene/schema', schemas.gene);
     container.put('child/schema', schemas.child);
     
     container.put('gene/adapter', function (p) { 
-      var adapter = new Model(p);
-      adapter._put = function (id, model, options, callback) {
-        this.store[id] = model;
-        callback(null, id);
-      };
-      return adapter;
+      return new Adapter(p);
     }, true);
-    
     container.put('child/adapter', function (p) { 
-      var adapter = new Model(p);
-      adapter._put = function (id, model, options, callback) {
-        this.store[id] = model;
-        callback(null, id);
-      };
-      return adapter;
+      return new Adapter(p);
     }, true);
-    
     container.put('noschema/adapter', function (p) { 
-      var adapter = new Model(p);
-      adapter._put = function (id, model, options, callback) {
-        this.store[id] = model;
-        callback(null, id);
-      };
-      return adapter;
+      return new Adapter(p);
     }, true);
 
     container.put('gene/model', function (p) { p.schema = schemas.gene; return new Model(p); });

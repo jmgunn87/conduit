@@ -1,9 +1,7 @@
 var assert = require('assert');
 var rimraf = require('rimraf');
 var LevelDBAdapter = require('./../../src/leveldb-adapter');
-var Container = require('./../../src/container');
-var Transcoder = require('./../../src/transcoder');
-var Validator = require('./../../src/validator');
+var container = require('./index');
 
 describe('LevelDBAdapter', function () {
 
@@ -40,12 +38,7 @@ describe('LevelDBAdapter', function () {
     time     : new Date()
   };
 
-  var container = new Container();
-  container.put('validator', function (params) { return new Validator(params); });
-  container.put('encoder', function (params) { return new Transcoder(params); });
-  container.put('decoder', function (params) { return new Transcoder(params); });
   container.put('TestEntity/schema', schemas.TestEntity);
-
   var adapter = new LevelDBAdapter({
     container: container,
     entity: 'TestEntity',
@@ -107,9 +100,9 @@ describe('LevelDBAdapter', function () {
         assert.deepEqual(entity.boolean, values.boolean);
         assert.deepEqual(entity.float, values.float);
         assert.deepEqual(entity.number, values.number);
-        assert.deepEqual(entity.date, values.date);
-        assert.deepEqual(entity.datetime, values.datetime);
-        assert.deepEqual(entity.time, values.time);
+        assert.deepEqual(new Date(entity.date), values.date);
+        assert.deepEqual(new Date(entity.datetime), values.datetime);
+        assert.deepEqual(new Date(entity.time), values.time);
         done();
       }); 
     });
@@ -128,9 +121,9 @@ describe('LevelDBAdapter', function () {
           assert.deepEqual(entity.boolean, values.boolean);
           assert.deepEqual(entity.float, values.float);
           assert.deepEqual(entity.number, values.number);
-          assert.deepEqual(entity.date, values.date);
-          assert.deepEqual(entity.datetime, values.datetime);
-          assert.deepEqual(entity.time, values.time);
+          assert.deepEqual(new Date(entity.date), values.date);
+          assert.deepEqual(new Date(entity.datetime), values.datetime);
+          assert.deepEqual(new Date(entity.time), values.time);
         }
         done();
       });
@@ -145,6 +138,7 @@ describe('LevelDBAdapter', function () {
       var found = undefined;
       adapter.client.createReadStream()
         .on('data', function (data) {
+          console.log(data)
           found = new Error('indexes found');
         })
         .on('error', function (err) {

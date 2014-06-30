@@ -134,6 +134,26 @@ Account.prototype.preUpdate = [
 ];
 </code></pre>
         <h4 id="schema_specification">Schema specification</h4>
+<pre><code data-language="javascript">{
+  "entity": "Account",
+  "fields": {
+    "entity": { "type": "entity" },
+    "object": { "type": "object" },
+    "array": { "type": "array" },
+    "string": { "type": "string" },
+    "boolean": { "type": "boolean" },
+    "float": { "type": "float" },
+    "integer": { "type": "integer" },
+    "datetime": { "type": "datetime" },
+    "date": { "type": "date" },
+    "time": { "type": "time" },
+    "one2one": { "type": "entity", "mapped": "inversedFieldName" },
+    "one2many": { "type": "entity", "mapped": "inversedFieldName" },
+    "many2one": { "type": "entity", "mapped": "inversedFieldName" },
+    "many2many": { "type": "entity", "mapped": "inversedFieldName" }
+  }
+}
+</code></pre>
         <dl>
           <dt>entity</dt><dd>the value of this field should be that of a defined <strong>Model</strong> subclass</dd>
           <dt>object</dt><dd>a javascript <strong>Object</strong> type</dd>
