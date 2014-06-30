@@ -16,7 +16,7 @@ SQLite3Adapter.prototype = Object.create(Adapter.prototype);
 SQLite3Adapter.prototype.encoders = Object.create(Adapter.prototype.encoders);
 SQLite3Adapter.prototype.encoders._default = function (v, o, d) {
   if (v === null || v === undefined) v = 'NULL';
-  return d(null, '\'' + JSON.stringify(v).replace(/"/g, '\\"') + '\'');
+  return d(null, JSON.stringify(v));
 };
 SQLite3Adapter.prototype.encoders.date     =
 SQLite3Adapter.prototype.encoders.datetime =
@@ -26,7 +26,7 @@ SQLite3Adapter.prototype.encoders.time     = function (v, o, d) {
 
 SQLite3Adapter.prototype.decoders = Object.create(Adapter.prototype.decoders);
 SQLite3Adapter.prototype.decoders._default = function (v, o, d) {
-  return d(null, typeof v == 'string' ? JSON.parse(v.replace(/\\/g, '')) : v);
+  return d(null, typeof v == 'string' ? JSON.parse(v) : v);
 };
 SQLite3Adapter.prototype.decoders.date     =
 SQLite3Adapter.prototype.decoders.datetime =
@@ -90,7 +90,7 @@ SQLite3Adapter.prototype.templates = {
     '<% if (offset) { %> OFFSET <%= offset %> <% } %> '
   ].join('')),
   put: _.template([
-    'INSERT OR REPLACE INTO <%= entity %> (<%= fields.join(",") %>) VALUES (<%= values.join(",") %>)',
+    'INSERT OR REPLACE INTO <%= entity %> (<%= fields.join(",") %>) VALUES (\'<%= values.join("\',\'") %>\')',
   ].join('')),
   del: _.template([
     'DELETE FROM <%= entity %> WHERE id=<%= id %>'
@@ -195,30 +195,25 @@ SQLite3Adapter.prototype._put = function (id, model, options, callback) {
     return v !== schema.id;
   });
 
-  this.encoder.transcode(model, schema, function (err, values) {
-    if (err) return callback(err);
-    delete values.id;
-    try {
-      self.exec(template({
-        entity: entity,
-        fields: fields,
-        values: _.values(values)
-      }), [], function (err) {
-        callback(err, this.lastID);
-      });
-    } catch (e) {
-      return callback(e); 
-    }
-  });
+  delete model.id;
+
+  try {
+    self.exec(template({
+      entity: entity,
+      fields: fields,
+      values: _.values(model)
+    }), [], function (err) {
+      callback(err, this.lastID);
+    });
+  } catch (e) {
+    return callback(e); 
+  }
 };
 
 SQLite3Adapter.prototype._get = function (id, options, callback) {
-  var self = this;
   var sql = '';
   var entity = this.entity;
-  var schema = this.schema;
   var client = this.client; 
-  var decoder = this.decoder;
   var template = options && options.template ? 
     _.template(options.template) : this.templates.get;
 
@@ -243,11 +238,8 @@ SQLite3Adapter.prototype._get = function (id, options, callback) {
 
     client.all(sql, [], function (err, result) {
       if (err) return callback(err);
-      async.map(result, function (item, done) { 
-        decoder.transcode(item, schema, done);
-      }, callback);
+      callback(null, result.length === 1 ? result[0] : result);
     });
-
   });
 };
 
