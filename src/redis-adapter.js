@@ -56,33 +56,25 @@ RedisAdapter.prototype.disconnect = function (callback) {
 RedisAdapter.prototype._put = function (id, model, options, callback) {
   var self = this;
   var entity = this.entity;
-  var schema = this.schema;
   var client = this.client;
 
-  this.encoder.transcode(model, schema, function (err, values) {
+  client.hmset(entity + '/id/' + id, model, function (err) {
     if (err) return callback(err);
-    client.hmset(entity + '/id/' + id, values, function (err) {
-      if (err) return callback(err);
-      callback(null, id);
-    });
+    callback(null, id);
   });
 };
 
 RedisAdapter.prototype._get = function (id, options, callback) { 
   var self = this;
   var entity = this.entity;
-  var schema = this.schema;
-  var decoder = this.decoder;
 
   this.client.hgetall(entity + '/id/' + id, function (err, value) {
     if (err) return callback(err);
-    if (!value) return callback(null);
-    decoder.transcode(value, schema, callback);
+    callback(null, value);
   });
 };
 
 RedisAdapter.prototype._del = function (id, options, callback) { 
   var entity = this.entity;
-  var fields = this.schema.fields;
   this.client.del(entity + '/id/' + id, callback);
 };

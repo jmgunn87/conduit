@@ -1,57 +1,22 @@
 var assert = require('assert');
 var RedisAdapter = require('./../../src/redis-adapter');
-var Container = require('./../../src/container');
-var Transcoder = require('./../../src/transcoder');
-var Validator = require('./../../src/validator');
+var container = require('./index');
 
 describe('RedisAdapter', function () {
 
-  var schemas = {};
-  schemas.TestEntity = {
-    entity: 'TestEntity',
-    id: 'id',
-    fields: { 
-      id       : { type: 'integer' },
-      entity   : { type: 'entity',   entity: 'OtherTest' },
-      object   : { type: 'object',   index: true, length: 255 },
-      array    : { type: 'array',    index: true, length: 255 },
-      string   : { type: 'string',   index: true, length: 255 },
-      boolean  : { type: 'boolean',  index: true, length: 1   },
-      float    : { type: 'float',    index: true, length: 255 },
-      integer  : { type: 'integer',  index: true, length: 255 },
-      date     : { type: 'date',     index: true, length: 255 },
-      datetime : { type: 'datetime', index: true, length: 255 },
-      time     : { type: 'time',     index: true, length: 255 }
-    }
-  };
-  
-  var values = {
-    id       : '1',
-    entity   : '98989898',
-    object   : { a: 1, b: 2, c: 3 },
-    array    : [1, 2, 3],
-    string   : 'string',
-    boolean  : false,
-    float    : 100.001,
-    integer  : 101,
-    date     : new Date(),
-    datetime : new Date(),
-    time     : new Date()
-  };
-
-  var container = new Container();
-  container.put('validator', function (params) { return new Validator(params); });
-  container.put('encoder', function (params) { return new Transcoder(params); });
-  container.put('decoder', function (params) { return new Transcoder(params); });
-  container.put('TestEntity/schema', schemas.TestEntity);
-
+  var schema = container.get('schemas').TestEntity;
+  var values = container.get('seeds').TestEntity[0];
   var adapter = new RedisAdapter({
     container: container,
     entity: 'TestEntity'
   });
 
   before(function (done) {
-    adapter.connect(done);
+    adapter.encoder.transcode(values, schema, function (err, result) {
+      if (err) throw err;
+      values = result;
+      adapter.connect(done);
+    });
   });
 
   after(function (done) {
