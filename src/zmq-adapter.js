@@ -12,6 +12,7 @@ function ZMQAdapter(config) {
 ZMQAdapter.prototype = Object.create(Adapter.prototype);
 
 ZMQAdapter.prototype.connect = function (callback) {
+  if (this.socket) this.socket.close();
   this.socket = zmq.socket('req');
   this.socket.identity = this.config.identity;
   this.socket.connect(this.config.host);
@@ -24,53 +25,27 @@ ZMQAdapter.prototype.disconnect = function (callback) {
 };
 
 ZMQAdapter.prototype._put = function (id, model, options, callback) {
-  var self = this;
-  var socket = this.socket;
-  
-  this.encoder.transcode(model, this.schema, function (err, values) {
+  this.exec({ method: 'put', body: model }, function (err) {
     if (err) return callback(err);
-    self.exec({ 
-      method: 'put', 
-      body: values
-    }, callback);
+    callback(null, id);
   });
 };
 
 ZMQAdapter.prototype._get = function (id, options, callback) {
-  var self = this;
-  var socket = this.socket;
-  var schema = this.schema;
-  var decoder = this.decoder;
-  
   options = options || {};
   if (!options.query && id) {
     options.query = {};
     options.query.id = id; 
   }
 
-  this.exec({
-    method: 'get',
-    query: options.query,
-    id: id,
-  }, function (err, data) {
+  this.exec({ method: 'get', query: options.query, id: id }, function (err, data) {
     if (err) return callback(err);
-    if(_.isArray(data.body)) {
-      async.map(data.body, function (item, done) { 
-        decoder.transcode(item, schema, done);
-      }, callback);
-    } else {
-      decoder.transcode(data.body, schema, callback);
-    }
+    callback(null, data.body);
   });
 };
 
 ZMQAdapter.prototype._del = function (id, options, callback) {
-  var self = this;
-  var socket = this.socket;
-  self.exec({ 
-    method: 'del', 
-    id: id 
-  }, callback);
+  this.exec({ method: 'del', id: id }, callback);
 };
 
 ZMQAdapter.prototype.exec = function (message, callback) {
@@ -79,6 +54,6 @@ ZMQAdapter.prototype.exec = function (message, callback) {
   socket.once('error', callback);
   socket.once('message', function(data) {
     socket.removeListener('error', callback);
-    callback(null, JSON.parse(data));
+    callback(null, JSON.parse(data.toString()));
   });
 };
