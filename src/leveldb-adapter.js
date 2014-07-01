@@ -32,13 +32,13 @@ LevelDBAdapter.prototype._put = function (id, model, options, callback) {
   var batch = this.client.batch();
   var keyname = entity + '/id/' + id;
 
-  this.client.get(keyname, function (err, existingRecord) {
+  this.client.get(keyname, function (err, previous) {
     self._iterateIndexes(model, function (key, value) {
       batch.put([entity, key, value, id].join('/'), id, {
         valueEncoding: 'utf8'
       });
     }, function () {
-      self._iterateIndexes(existingRecord, function (key, value) {
+      self._iterateIndexes(previous, function (key, value) {
         if (model[key] !== value) {
           batch.del([entity, key, value, id].join('/'));
         }

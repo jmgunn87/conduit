@@ -57,10 +57,26 @@ RedisAdapter.prototype._put = function (id, model, options, callback) {
   var self = this;
   var entity = this.entity;
   var client = this.client;
+  var batch = client.multi();
+  var keyname = entity + '/id/' + id;
 
-  client.hmset(entity + '/id/' + id, model, function (err) {
+  client.hgetall(keyname, function (err, previous) {
     if (err) return callback(err);
-    callback(null, id);
+    self._iterateIndexes(model, function (key, value) {
+      batch.sadd([entity, key, value].join('/'), id);
+    }, function () {
+      self._iterateIndexes(previous, function (key, value) {
+        if (model[key] !== value) {
+          batch.srem([entity, key, value].join('/'), id);
+        }
+      }, function () {
+        batch.hmset(keyname, model);
+        batch.exec(function (err) {
+          if (err) return callback(err);
+          callback(null, id);
+        });
+      });
+    });
   });
 };
 
@@ -75,6 +91,38 @@ RedisAdapter.prototype._get = function (id, options, callback) {
 };
 
 RedisAdapter.prototype._del = function (id, options, callback) { 
+  var self = this;
   var entity = this.entity;
-  this.client.del(entity + '/id/' + id, callback);
+  var batch = this.client.multi();
+  var keyname = entity + '/id/' + id;
+
+  this.client.hgetall(keyname, function (err, values) {
+    if (err) return callback(err);
+    self._iterateIndexes(values, function (key, value) {
+      batch.srem([entity, key, value].join('/'), id);
+    }, function () {
+      batch.del(keyname);
+      batch.exec(callback);
+    });
+  });
+};
+
+RedisAdapter.prototype._iterateIndexes = function (values, iterator, callback) {
+  if (!values) return callback();
+
+  var fields = this.schema.fields;
+  for (var key in fields) {
+    var field = fields[key];
+    if (!values[key]) continue;
+    if (field.index || field.type === 'entity') {
+      switch(field.type) {
+        case 'array':
+        case 'object':
+          break;
+        default:
+          iterator(key, values[key]);
+      }
+    }
+  } 
+  callback();
 };

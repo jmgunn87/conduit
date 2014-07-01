@@ -72,6 +72,13 @@ describe('RedisAdapter', function () {
         });
       });
     });
+    it("destroys any indexes", function (done) {
+      adapter.client.keys('TestEntity*', function (err, result) {
+        if (err) throw err;
+        assert.ok(!result.length); 
+        done();
+      });
+    });
   });
 
 });
