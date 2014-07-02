@@ -83,8 +83,36 @@ RedisAdapter.prototype._put = function (id, model, options, callback) {
 RedisAdapter.prototype._get = function (id, options, callback) { 
   var self = this;
   var entity = this.entity;
+  var client = this.client;
+  var schema = this.schema;
 
-  this.client.hgetall(entity + '/id/' + id, function (err, value) {
+  if (!id) {
+    return this.encoder.transcode(options.query, schema, function (err, query) {
+      var interlist = [];
+      var indexes = [];
+
+      for (var key in options.query) {
+        interlist.push(key);
+        indexes.push([entity, key, query[key]].join('/'));
+      }
+
+      interlist = entity + '/' + interlist.join('+');
+
+      client.sinterstore([interlist].concat(indexes), function (err) {
+        if (err) return callback(err);
+        client.sort(interlist, function (err, ids) {
+          if (err) return callback(err);
+          var batch = client.multi();
+          ids.forEach(function (id) {
+            batch.hgetall(entity + '/id/' + id);
+          });
+          batch.exec(callback);
+        });
+      });
+    });
+  }
+
+  client.hgetall(entity + '/id/' + id, function (err, value) {
     if (err) return callback(err);
     callback(null, value);
   });

@@ -59,6 +59,18 @@ describe('RedisAdapter', function () {
         done();
       }); 
     });
+    it("allows basic querying", function (done) {
+      adapter.get(null, {
+        query: {
+          _entity: 98989898,
+          _string: 'string'
+        }
+      }, function (err, entities) {
+        if (err) throw err;
+        console.log(entities);
+        done();
+      });
+    });
   });
   
   describe("#del", function () {
@@ -73,7 +85,7 @@ describe('RedisAdapter', function () {
       });
     });
     it("destroys any indexes", function (done) {
-      adapter.client.keys('TestEntity*', function (err, result) {
+      adapter.client.keys('TestEntity/_entitye*', function (err, result) {
         if (err) throw err;
         assert.ok(!result.length); 
         done();
