@@ -10,7 +10,8 @@ describe("Validator", function () {
       'password' : function (v, o, d) { return d(null); },
       'email'    : function (v, o, d) { return d(null); },
       'postcode' : function (v, o, d) { return d(null); },
-      'error'    : function (v, o, d) { return d(new Error('This is an error.')); }
+      'error'    : function (v, o, d) { return d(new Error('This is an error.')); },
+      'throw'    : function (v, o, d) { throw new Error('This is an error.'); }
     });
   });
 
@@ -48,6 +49,43 @@ describe("Validator", function () {
         assert.ok(err);
         assert.ok(results.password);
         assert.ok(results.postcode);
+        done();
+      });
+    });
+    it("catches any thrown errors", function (done) {
+      this.instance.validate({
+        'throw': 'value'
+      }, {
+        fields: {
+          throw: { type: 'throw' }
+        }
+      }, function (err, transcoded) {
+        assert.ok(err);
+        done();
+      });
+    });
+    it("handles null values", function (done) {
+      this.instance.validate(null, {
+        fields: {
+          postcode : { type: 'error' }
+        }
+      }, function (err, results) {
+        if (err) throw err;
+        assert.ok(!results);
+        done();
+      });
+    });
+    it("handles null schemas", function (done) {
+      this.instance.validate({}, null, function (err, results) {
+        if (err) throw err;
+        assert.ok(!results);
+        done();
+      });
+    });
+    it("handles invalid schemas", function (done) {
+      this.instance.validate({}, {}, function (err, results) {
+        if (err) throw err;
+        assert.ok(!results);
         done();
       });
     });

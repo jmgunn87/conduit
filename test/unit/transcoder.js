@@ -5,10 +5,11 @@ describe("Transcoder", function () {
 
   before(function () {
     this.instance = new Transcoder({
-      "_default": function (v, o, d) { return d(null, v); },
-      "datetime": function (v, o, d) { return d(null, +v); },
-      "secret": function (v, o, d) { return d(null, 'message'); },
-      "error": function (v, o, d) { return d(true); }
+      "_default" : function (v, o, d) { return d(null, v); },
+      "datetime" : function (v, o, d) { return d(null, +v); },
+      "secret"   : function (v, o, d) { return d(null, 'message'); },
+      "error"    : function (v, o, d) { return d(true); },
+      'throw'    : function (v, o, d) { throw new Error('This is an error.'); }
     });
   });
 
@@ -44,12 +45,38 @@ describe("Transcoder", function () {
         done();
       });
     });
+    it("catches any thrown errors", function (done) {
+      this.instance.transcode({
+        'throw': 'value'
+      }, {
+        fields: {
+          throw: { type: 'throw' }
+        }
+      }, function (err, transcoded) {
+        assert.ok(err);
+        done();
+      });
+    });
     it("handles null values", function (done) {
       this.instance.transcode(null, {
         fields: {
           error: { type: 'error' }
         }
       }, function (err, transcoded) {
+        if (err) throw err;
+        assert.ok(!transcoded);
+        done();
+      });
+    });
+    it("handles null schemas", function (done) {
+      this.instance.transcode({}, null, function (err, transcoded) {
+        if (err) throw err;
+        assert.ok(!transcoded);
+        done();
+      });
+    });
+    it("handles invalid schemas", function (done) {
+      this.instance.transcode({}, {}, function (err, transcoded) {
         if (err) throw err;
         assert.ok(!transcoded);
         done();
