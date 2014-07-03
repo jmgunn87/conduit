@@ -67,7 +67,7 @@ describe('RedisAdapter', function () {
         }
       }, function (err, entities) {
         if (err) throw err;
-        console.log(entities);
+        assert.ok(entities.length);
         done();
       });
     });

@@ -104,7 +104,7 @@ Model.prototype._put = function (key, value, options, done) {
 
 Model.prototype._get = function (key, options, done) {
   var mapper = this.mapper;
-  var value = this.store[key];
+  var value = this.store.hasOwnProperty(key) && this.store[key];
   var field = this.schema && this.schema.fields &&
     this.schema.fields[key] || {};
   
