@@ -195,6 +195,13 @@ describe('Mapper', function () {
         done();
       });
     });
+    it("returns a validation error if present", function (done) {
+      container.get('gene/adapter').validator.put('title', function () { throw 1; });
+      mapper.put('gene', model, function (err, id) {
+        assert.ok(err);
+        done();
+      });
+    });
   });
   describe('#get', function () {
     it('retrieves an entity by its id', function (done) {
