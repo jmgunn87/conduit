@@ -5,13 +5,22 @@ describe("Validator", function () {
 
   before(function () {
     this.instance = new Validator();
+    this.instance.schema = {
+      fields: {
+        username : { type: 'username' },
+        password : { type: 'password' },
+        email    : { type: 'email' },
+        postcode : { type: 'postcode' },
+        unknown  : { type: 'unknown' }
+      }
+    };
     this.instance.put({
       'username' : function (v, o, d) { return d(null); },
       'password' : function (v, o, d) { return d(null); },
       'email'    : function (v, o, d) { return d(null); },
       'postcode' : function (v, o, d) { return d(null); },
-      'error'    : function (v, o, d) { return d(new Error('This is an error.')); },
-      'throw'    : function (v, o, d) { throw new Error('This is an error.'); }
+      'error'    : function (v, o, d) { return d(new Error('validation error.')); },
+      'throw'    : function (v, o, d) { throw new Error('thrown validation error.'); }
     });
   });
 
@@ -22,70 +31,27 @@ describe("Validator", function () {
         password: 'Passw0rd',
         email: 'jmgunn87@gmail.com',
         postcode: 'se232ez'
-      }, {
-        fields: {
-          username : { type: 'username' },
-          password : { type: 'password' },
-          email    : { type: 'email' },
-          postcode : { type: 'postcode' },
-          unknown  : { type: 'unknown' },
-        }
       }, done);
     });
     it("returns validation errors to its callback if any are present", function (done) {
+      var self = this;
+      this.instance.schema.fields.error = { type: 'error' };
       this.instance.validate({
-        username: 'James1',
-        password: 'Passw0rd',
-        email: 'jmgunn87@gmail.com',
-        postcode: 'se232ez'
-      }, {
-        fields: {
-          username : { type: 'username' },
-          password : { type: 'error' },
-          email    : { type: 'email' },
-          postcode : { type: 'error' }
-        }
-      }, function (err, results) {
+        error: 'error'
+      }, function (err) {
         assert.ok(err);
-        assert.ok(results.password);
-        assert.ok(results.postcode);
+        self.instance.schema.fields.error = undefined;
         done();
       });
     });
     it("catches any thrown errors", function (done) {
+      var self = this;
+      this.instance.schema.fields.throw = { type: 'throw' };
       this.instance.validate({
-        'throw': 'value'
-      }, {
-        fields: {
-          throw: { type: 'throw' }
-        }
-      }, function (err, transcoded) {
+        throw: 'throw'
+      }, function (err) {
         assert.ok(err);
-        done();
-      });
-    });
-    it("handles null values", function (done) {
-      this.instance.validate(null, {
-        fields: {
-          postcode : { type: 'error' }
-        }
-      }, function (err, results) {
-        if (err) throw err;
-        assert.ok(!results);
-        done();
-      });
-    });
-    it("handles null schemas", function (done) {
-      this.instance.validate({}, null, function (err, results) {
-        if (err) throw err;
-        assert.ok(!results);
-        done();
-      });
-    });
-    it("handles invalid schemas", function (done) {
-      this.instance.validate({}, {}, function (err, results) {
-        if (err) throw err;
-        assert.ok(!results);
+        self.instance.schema.fields.throw = undefined;
         done();
       });
     });

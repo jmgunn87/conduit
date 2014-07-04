@@ -8,29 +8,21 @@ function Validator (config) { Model.call(this, config); }
 
 Validator.prototype = Object.create(Model.prototype);
 
-Validator.prototype.validate = function (value, schema, done) {
-  var self = this;
-  var hasError = null;
+Validator.prototype.validate = function () {
+  return this._dispatch('validate', 
+    Array.prototype.slice.call(arguments, 0)
+  ); 
+};
 
-  if (!value || !schema || !schema.fields) return done(null);
-  
-  async.parallel(_.reduce(schema.fields, function (reduction, field, key) {
-    reduction[key] = function (callback) {
-      var validator = self.get(field.type);
-      if (!validator) return callback();
+Validator.prototype._validate = function (key, value, done) {
+  var field = this.schema.fields[key];
+  var validator = this.get(field.type) || this.get('_default');
+  if (!validator) return done();
+  if (typeof value[key] === 'undefined') return done();
 
-      try {
-        validator(value[key], field, function (err) {
-          hasError = !!err;
-          callback(null, err);
-        });
-      } catch (err) {
-        hasError = true;
-        callback(err);
-      }
-    };
-    return reduction;
-  }, {}), function (err, result) {
-    return done(hasError || null, result);
-  });
+  try {
+    return validator(value[key], field, done);
+  } catch (err) {
+    return done(err);
+  }
 };

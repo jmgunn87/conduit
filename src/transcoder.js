@@ -8,6 +8,12 @@ function Transcoder(config) { Model.call(this, config); }
 
 Transcoder.prototype = Object.create(Model.prototype);
 
+Transcoder.prototype.transcode = function () {
+  return this._dispatch('transcode', 
+    Array.prototype.slice.call(arguments, 0)
+  ); 
+};
+
 Transcoder.prototype.transcode = function (value, schema, done) {
   var self = this;
 

@@ -25,7 +25,7 @@ Mapper.prototype._put = function(entity, instance, options, done) {
     ], function (err) {
       if (err) return done(err);
       adapter.validator.validate(data, instance.schema, function (err, valid) {
-        if (!valid) return done(new Error('validation error'));
+        if (!valid) return done(err);
         adapter.encoder.transcode(data, instance.schema, function (err, encoded) {
           if (err) return done(err);
           adapter.put(encoded.id, encoded, function (err, id) {
